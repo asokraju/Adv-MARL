@@ -10,7 +10,7 @@ np.random.seed(10)
 class Grid_World(gym.Env):
     """
     Multi agent Grid-World
-    Objective of each agent is to reach their desired positions with out colliding and following a shortest path
+    Objective of each agent is to reach their desired positions without colliding and following a shortest path
     nrow, ncol: dimensions of the grid world 
     n_agents: number of agents/players
     rew_scaling: if True scales the reward with some values [p1,p2,p3] (s.t. p1+p2+p3 =1 ), 
@@ -20,7 +20,7 @@ class Grid_World(gym.Env):
     metadata = {'render.modes': ['console']}
 
     def __init__(self, nrow = 5, ncol=5, n_agents = 1, rew_scaling = True):
-        super(Grid_world, self).__init__()
+        super(Grid_World, self).__init__()
         self.nrow = nrow
         self.ncol = ncol
         self.n_agents = n_agents
@@ -29,14 +29,14 @@ class Grid_World(gym.Env):
         self.rew_scaling = rew_scaling
 
         #self.observation_space = spaces.Discrete(self.total_states*n_agents)
-        self.observation_space = gym.spaces.MultiDiscrete([env.total_states for _ in range(env.n_agents)])
-        self.action_space = gym.spaces.MultiDiscrete([self.n_actions for _ in range(env.n_agents)])
+        self.observation_space = gym.spaces.MultiDiscrete([self.total_states for _ in range(self.n_agents)])
+        self.action_space = gym.spaces.MultiDiscrete([self.n_actions for _ in range(self.n_agents)])
 
         self._state_map()
         self._get_state()
         self._get_desired()
         self._reward_scaling()
-
+        self.actions = {0:'LEFT', 1:'Down', 2:'RIGHT', 3:'UP'}
     def _get_state(self):
         self.state = np.array(random.sample(range(self.total_states), self.n_agents))
 
@@ -76,7 +76,8 @@ class Grid_World(gym.Env):
     def _dist(self, s1, s2):
         """
         measures the shortest distance between the state s1 and s2
-        s1, s2 are integers
+        arguments: s1, s2 are integers
+        returns: integer
         """
         x1, y1 = self.i_state_transformation[s1]
         x2, y2 = self.i_state_transformation[s2]
@@ -84,9 +85,15 @@ class Grid_World(gym.Env):
 
     def _inc(self, row, col, a):
         """
-        row, col, a are all integers
-        at (row,col) coordinate, taking the action = (0,1,2,3)
+        at (row,col) coordinate, taking the action from (0,1,2,3)
         we arrive at (row, col) coordinate
+        
+        arguments: row, col, a are integers
+        a:  0 - LEFT
+            1 - DOWN
+            2 - RIGHT
+            3 - UP
+        returns: (row, col) tuple of integers
         """
         if a == 0:
             col = max(col - 1, 0)
@@ -110,10 +117,11 @@ class Grid_World(gym.Env):
 
     def step(self, a):
         """
-        a: represent the actions of all agents, a numpy array of shape (self.n_agents, )
-        returns the new state, reward, terminal states after taking action a
+        --returns the new state, reward, terminal states after taking action a
 
-        returns
+        -arguments
+        a: represent the actions of all agents, a numpy array of shape (self.n_agents, )
+        -returns
         self.state: numpy array (self.n_agents, )
         self.reward: numpy array (self.n_agents, )
         done: True (if all agents reached their desired positions) or False (otherwise)
@@ -148,6 +156,9 @@ class Grid_World(gym.Env):
         using get_node we get the reward of the specified node (only)
         If complete_state is False, then we can not observe the states of other agents
         always use get_node after using the step method
+        -arguments
+        node_index: integer in (0, self.n_agents)
+        complete_state: bool
         """
         if complete_state:
             return self.state, self.reward[node_index], self.done, {}
@@ -157,8 +168,13 @@ class Grid_World(gym.Env):
     def close(self):
         pass
 
-env = Grid_world(6,6,36)
+#example
+env = Grid_World(6,6,5)
 print(env.observation_space.shape[0])
 print(env.action_space.shape[0])
 state = env.reset()
-np.shape(state)
+print("Going left for 10 steps")
+print([env.i_state_transformation[s_a] for s_a in state])
+for _ in range(10):
+    state,r,t,_ =env.step([0 for _ in range(env.n_agents)])
+    print([env.i_state_transformation[s_a] for s_a in state])
