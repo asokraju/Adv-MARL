@@ -1,4 +1,4 @@
-#Multi-Agent Reinforcement Learning (MARL)
+# Multi-Agent Reinforcement Learning (MARL)
 
 The aim is test and implement MARL algorithms.
 
