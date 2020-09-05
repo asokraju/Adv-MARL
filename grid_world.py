@@ -24,10 +24,11 @@ class Grid_World(gym.Env):
         self.nrow = nrow
         self.ncol = ncol
         self.n_agents = n_agents
-        self.total_states = self.nrow * self.ncol
-        self.n_actions = self.n_agents
         self.rew_scaling = rew_scaling
 
+        self.total_states = self.nrow * self.ncol
+        self.n_actions = 5
+        self.actions = {0:'LEFT', 1:'DOWN', 2:'RIGHT', 3:'UP', 4:'STAY'}
         #self.observation_space = spaces.Discrete(self.total_states*n_agents)
         self.observation_space = gym.spaces.MultiDiscrete([self.total_states for _ in range(self.n_agents)])
         self.action_space = gym.spaces.MultiDiscrete([self.n_actions for _ in range(self.n_agents)])
@@ -36,7 +37,6 @@ class Grid_World(gym.Env):
         self._get_state()
         self._get_desired()
         self._reward_scaling()
-        self.actions = {0:'LEFT', 1:'Down', 2:'RIGHT', 3:'UP'}
     def _get_state(self):
         self.state = np.array(random.sample(range(self.total_states), self.n_agents))
 
@@ -168,13 +168,33 @@ class Grid_World(gym.Env):
     def close(self):
         pass
 
-#example
+
+
+#Testin
 env = Grid_World(6,6,5)
 print(env.observation_space.shape[0])
 print(env.action_space.shape[0])
+
 state = env.reset()
-print("Going left for 10 steps")
+print("inital state")
 print([env.i_state_transformation[s_a] for s_a in state])
-for _ in range(10):
-    state,r,t,_ =env.step([0 for _ in range(env.n_agents)])
-    print([env.i_state_transformation[s_a] for s_a in state])
+
+print("going left")
+state,r,t,_ =env.step([0 for _ in range(env.n_agents)])
+print([env.i_state_transformation[s_a] for s_a in state])
+
+print("going Right")
+state,r,t,_ =env.step([2 for _ in range(env.n_agents)])
+print([env.i_state_transformation[s_a] for s_a in state])
+
+print("going down")
+state,r,t,_ =env.step([1 for _ in range(env.n_agents)])
+print([env.i_state_transformation[s_a] for s_a in state])
+
+print("going up")
+state,r,t,_ =env.step([3 for _ in range(env.n_agents)])
+print([env.i_state_transformation[s_a] for s_a in state])
+
+print("Staying in the same place")
+state,r,t,_ =env.step([4 for _ in range(env.n_agents)])
+print([env.i_state_transformation[s_a] for s_a in state])
