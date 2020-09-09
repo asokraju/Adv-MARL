@@ -25,7 +25,7 @@ args = {
     'state_dim' : 5,
     'action_dim' : 5,
     'actor_lr': 0.001,
-    'batch_size' : 10,
+    'batch_size' : 200,
     'actor_l1' : 100,
     'actor_l2' : 50,
     'critic_lr':0.01,
@@ -35,7 +35,7 @@ args = {
     'egr_lr':0.1,
     'egr_l1':100,
     'egr_l2':50,
-    'max_episodes':2,
+    'max_episodes':500,
     'summary_dir':'./Power-Converters/marl/results',
     'max_episode_len':200,
     'scaling':False,
@@ -48,7 +48,9 @@ args = {
 if args['use_gpu']:
         physical_devices = tf.config.list_physical_devices('GPU') 
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
 env = Grid_World(6,6,5)
+
 replay_buffer1 = ReplayBuffer(int(args['buffer_size']), int(args['random_seed']))
 replay_buffer2 = ReplayBuffer(int(args['buffer_size']), int(args['random_seed']))
 replay_buffer3 = ReplayBuffer(int(args['buffer_size']), int(args['random_seed']))

@@ -46,12 +46,12 @@ class ActorNetwork(object):
         self.params_l1 = params_l1
         self.params_l2 = params_l2
 
-        self.cce = tf.keras.losses.CategoricalCrossentropy()
+        self.cce = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
         self.optimizer = tf.keras.optimizers.Adam(self.learning_rate)
 
         #actor network
-        self.inputs, self.out= self.create_actor_network()
-        self.actor_model = keras.Model(inputs=self.inputs, outputs=self.out, name='actor_network')
+        self.inputs, self.logits= self.create_actor_network()
+        self.actor_model = keras.Model(inputs=self.inputs, outputs=self.logits, name='actor_network')
         self.network_params = self.actor_model.trainable_variables
 
 
@@ -66,14 +66,14 @@ class ActorNetwork(object):
         """
         inputs = Input(shape = (self.state_dim,), batch_size = None, name = "actor_input_state")
         
-        w_init = tf.random_uniform_initializer(minval=-0.03, maxval=0.03, seed=None)
+        w_init = keras.initializers.he_normal()
 
         net = layers.Dense(self.params_l1, name = 'actor_dense_1', kernel_initializer = w_init, activation='relu')(inputs)
 
         net = layers.Dense(self.params_l2, name = 'actor_dense_2', kernel_initializer = w_init, activation='tanh')(net)
         
-        out = layers.Dense(self.action_dim, activation='softmax', name = 'output_layer', kernel_initializer = w_init)(net)
-        return inputs, out
+        logits = layers.Dense(self.action_dim, activation=tf.keras.activations.linear, name = 'output_layer', kernel_initializer = w_init)(net)
+        return inputs, logits
 
     def train(self, state, action, weights):
         """
@@ -98,7 +98,7 @@ class ActorNetwork(object):
         #print(y_pred)
 
     def predict(self, inputs):
-        return self.actor_model(inputs)
+        return tf.keras.activations.softmax(self.actor_model(inputs))
 
 
 
@@ -135,7 +135,7 @@ class CriticNetwork(object):
     def create_critic_network(self):
         inputs_state = Input(shape = (self.state_dim,), batch_size = None, name = "critic_input_state")
         #inputs_action = Input(shape = (self.action_dim,), batch_size = None, name = "critic_input_action")
-        w_init = tf.random_uniform_initializer(minval=-0.03, maxval=0.03, seed=None)
+        w_init =keras.initializers.he_normal()# tf.random_uniform_initializer(minval=-0.03, maxval=0.03, seed=None)
         
         #first hidden layer
         net = layers.Dense(self.params_l1, name = 'critic_dense_1', kernel_initializer = w_init, activation='relu')(inputs_state)
@@ -218,7 +218,7 @@ class EstimatedGlobalReward(object):
     def create_reward_network(self):
         inputs_state = Input(shape = (self.state_dim,), batch_size = None, name = "egr_input_state")
         #inputs_action = Input(shape = (self.action_dim,), batch_size = None, name = "critic_input_action")
-        w_init = tf.random_uniform_initializer(minval=-0.03, maxval=0.03, seed=None)
+        w_init = keras.initializers.he_normal()#tf.random_uniform_initializer(minval=-0.03, maxval=0.03, seed=None)
         
         #first hidden layer
         net = layers.Dense(self.params_l1, name = 'EGR_dense_1', kernel_initializer = w_init, activation='relu')(inputs_state)
