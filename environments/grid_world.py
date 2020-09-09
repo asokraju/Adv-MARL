@@ -19,7 +19,7 @@ class Grid_World(gym.Env):
     """ 
     metadata = {'render.modes': ['console']}
 
-    def __init__(self, nrow = 5, ncol=5, n_agents = 1, rew_scaling = True):
+    def __init__(self, nrow = 5, ncol=5, n_agents = 1, rew_scaling = False):
         super(Grid_World, self).__init__()
         self.nrow = nrow
         self.ncol = ncol
@@ -37,6 +37,9 @@ class Grid_World(gym.Env):
         self._get_state()
         self._get_desired()
         self._reward_scaling()
+
+        self.reward, self.done = np.full_like(self.state, 0.0), False
+
     def _get_state(self):
         self.state = np.array(random.sample(range(self.total_states), self.n_agents))
 
@@ -145,7 +148,7 @@ class Grid_World(gym.Env):
         if self.rew_scaling:
             self.reward = np.array(rew)*self.reward_scaling
         else:
-            self.reward = np.array(rew)
+            self.reward = np.array(rew, dtype=float)
         self.done = np.array_equal(self.state, self.desired_state)
 
         return self.state, self.reward, self.done, {}
@@ -167,34 +170,35 @@ class Grid_World(gym.Env):
 
     def close(self):
         pass
+# #example
+# env = Grid_World(6,6,5)
+# print(env.observation_space.shape[0])
+# print(env.action_space.shape[0])
+# state = env.reset()
 
 
+# print("inital state")
+# print([env.i_state_transformation[s_a] for s_a in state])
 
-#Testin
-env = Grid_World(6,6,5)
-print(env.observation_space.shape[0])
-print(env.action_space.shape[0])
+# s_1, r_1, t_1, _ = env.get_node(0)
+# print("initial reward, states of node 0:", s_1, r_1, t_1)
 
-state = env.reset()
-print("inital state")
-print([env.i_state_transformation[s_a] for s_a in state])
+# print("going left")
+# state,r,t,_ =env.step([0 for _ in range(env.n_agents)])
+# print([env.i_state_transformation[s_a] for s_a in state])
 
-print("going left")
-state,r,t,_ =env.step([0 for _ in range(env.n_agents)])
-print([env.i_state_transformation[s_a] for s_a in state])
+# print("going Right")
+# state,r,t,_ =env.step([2 for _ in range(env.n_agents)])
+# print([env.i_state_transformation[s_a] for s_a in state])
 
-print("going Right")
-state,r,t,_ =env.step([2 for _ in range(env.n_agents)])
-print([env.i_state_transformation[s_a] for s_a in state])
+# print("going down")
+# state,r,t,_ =env.step([1 for _ in range(env.n_agents)])
+# print([env.i_state_transformation[s_a] for s_a in state])
 
-print("going down")
-state,r,t,_ =env.step([1 for _ in range(env.n_agents)])
-print([env.i_state_transformation[s_a] for s_a in state])
+# print("going up")
+# state,r,t,_ =env.step([3 for _ in range(env.n_agents)])
+# print([env.i_state_transformation[s_a] for s_a in state])
 
-print("going up")
-state,r,t,_ =env.step([3 for _ in range(env.n_agents)])
-print([env.i_state_transformation[s_a] for s_a in state])
-
-print("Staying in the same place")
-state,r,t,_ =env.step([4 for _ in range(env.n_agents)])
-print([env.i_state_transformation[s_a] for s_a in state])
+# print("Staying in the same place")
+# state,r,t,_ =env.step([4 for _ in range(env.n_agents)])
+# print([env.i_state_transformation[s_a] for s_a in state])
