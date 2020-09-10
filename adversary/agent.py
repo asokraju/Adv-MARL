@@ -142,7 +142,7 @@ class CriticNetwork(object):
 
 
         # second hidden layer
-        net = layers.Dense(self.params_l2, name = 'critic_dense_2', kernel_initializer = w_init, activation='tanh')(net)
+        net = layers.Dense(self.params_l2, name = 'critic_dense_2', kernel_initializer = w_init, activation='relu')(net)
 
         #w_init = tf.random_uniform_initializer(minval=-0.03, maxval=0.03, seed=None)
         out = layers.Dense(self.action_dim, name = 'Q_val', kernel_initializer = w_init)(net)
