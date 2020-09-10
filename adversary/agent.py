@@ -50,8 +50,8 @@ class ActorNetwork(object):
         self.optimizer = tf.keras.optimizers.Adam(self.learning_rate)
 
         #actor network
-        self.inputs, self.logits= self.create_actor_network()
-        self.actor_model = keras.Model(inputs=self.inputs, outputs=self.logits, name='actor_network')
+        self.inputs, self.out= self.create_actor_network()
+        self.actor_model = keras.Model(inputs=self.inputs, outputs=self.out, name='actor_network')
         self.network_params = self.actor_model.trainable_variables
 
 
@@ -72,8 +72,8 @@ class ActorNetwork(object):
 
         net = layers.Dense(self.params_l2, name = 'actor_dense_2', kernel_initializer = w_init, activation='tanh')(net)
         
-        logits = layers.Dense(self.action_dim, activation=tf.keras.activations.linear, name = 'output_layer', kernel_initializer = w_init)(net)
-        return inputs, logits
+        out = layers.Dense(self.action_dim, activation='softmax', name = 'output_layer', kernel_initializer = w_init)(net)
+        return inputs, out
 
     def train(self, state, action, weights):
         """
@@ -96,9 +96,16 @@ class ActorNetwork(object):
         actor_gradients = list(map(lambda x: tf.math.divide(x, self.batch_size), unnormalized_actor_gradients))
         self.optimizer.apply_gradients(zip(actor_gradients, self.actor_model.trainable_variables))
         #print(y_pred)
+    
+    def train_on_batch(self, state, action, weights):
+        self.actor_model.compile(loss=self.cce,optimizer=keras.optimizers.Adam())
+        self.actor_model.train_on_batch(state, action, sample_weight=weights)
+
+
 
     def predict(self, inputs):
-        return tf.keras.activations.softmax(self.actor_model(inputs))
+        return self.actor_model(inputs)
+        #tf.keras.activations.softmax(self.actor_model(inputs))
 
 
 
@@ -145,7 +152,7 @@ class CriticNetwork(object):
         net = layers.Dense(self.params_l2, name = 'critic_dense_2', kernel_initializer = w_init, activation='relu')(net)
 
         #w_init = tf.random_uniform_initializer(minval=-0.03, maxval=0.03, seed=None)
-        out = layers.Dense(self.action_dim, name = 'Q_val', kernel_initializer = w_init)(net)
+        out = layers.Dense(self.action_dim, name = 'Q_val')(net)
         return inputs_state, out
 
     def train(self, input_state, input_action, target):
@@ -159,17 +166,17 @@ class CriticNetwork(object):
                     - numpy array of shape (batch_size, state_dim)
         input_action - action used in this state (one-hot encoded)
                      - numpy array of shape (batch_size, action_dim)
-        target - [r +\gamma V(s_(k+1))]
-               -  numpy array of shape (batch_size, 1)
+        target - Q(s,a) = [r +\gamma V(s_(k+1))]
+               -  numpy array of shape (batch_size, action_dim)
         returns:
-                 the max_a(Q(s,a)) tensor of shape (batch_size,)
+                 the max_a(Q(s,a)) tensor of shape (batch_size, )
         """
         with tf.GradientTape(watch_accessed_variables=True) as tape:
-            prediction = self.critic_model(input_state) * input_action
-            prediction = tf.math.reduce_sum(prediction, axis = 1) #computes the value function
-            target_reshaped = tf.reshape(target, shape = tf.shape(prediction).numpy())
-            target_reshaped = tf.cast(target_reshaped, dtype = 'float32')
-            loss = tf.keras.losses.MSE(prediction, target_reshaped)
+            prediction = self.critic_model(input_state)
+            #prediction = tf.math.reduce_sum(prediction, axis = 1) #computes the value function
+            #target_reshaped = tf.reshape(target, shape = tf.shape(prediction).numpy())
+            #target_reshaped = tf.cast(target_reshaped, dtype = 'float32')
+            loss = tf.keras.losses.MSE(prediction, target)
         gradients = tape.gradient(loss, self.critic_model.trainable_variables)
         self.optimizer.apply_gradients(zip(gradients, self.critic_model.trainable_variables))
         return tf.reduce_max(self.critic_model(input_state), axis=1)
@@ -333,7 +340,7 @@ def train_multi_agent(env, args, actors, critics, egrs, reward_result, replay_bu
             for node, replay_buffer, critic, actor in zip(range(nodes), replay_buffers, critics, actors):
                 if replay_buffer.size() >= int(args['mini_batch_size']):
                     s_batch, a_batch, r_batch, t_batch, s2_batch = replay_buffer.sample_batch(int(args['mini_batch_size']))
-                    a_batch_hot = np.array([[1 if a==i else 0 for i in range(5)]  for a in a_batch])
+                    a_batch_hot = np.array([[1 if a==i else 0 for i in range(env.n_actions)]  for a in a_batch])
 
                     r_bar = egrs[node].egr_model(s_batch).numpy()
                     Q_s0 = critics[node].predict(s_batch).numpy()
@@ -353,7 +360,11 @@ def train_multi_agent(env, args, actors, critics, egrs, reward_result, replay_bu
                             e_td.append(r_bar[k] + critic.gamma * V_s1[k] - V_s0[k])
                             td.append(r_batch[k] + critic.gamma * V_s1[k] - V_s0[k])
                     
-                    critics[node].train(s_batch, a_batch_hot,  np.array([y]))
+                    target = [[Q_s0[i][a] if a != a_batch[i][0] else y[i] for a in range(env.n_actions)] for i in range(args['mini_batch_size'])]
+                    #print('Q_s0', Q_s0.shape, Q_s0)
+                    #print('target', np.shape(target), target)
+                    #[Q_s0[i][a_batch[i][0]]=y[i] for i in range(args['mini_batch_size']) ]
+                    critics[node].train(s_batch, a_batch_hot,  np.array(target))
                     actors[node].train(s_batch, a_batch_hot, np.array(td).reshape(args['mini_batch_size'],1))
                     egrs[node].train(s_batch, np.array(r_batch))
 
