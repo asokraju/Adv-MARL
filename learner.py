@@ -23,7 +23,7 @@ from environments.grid_world import Grid_World
 env = Grid_World(6,6,5)
 
 
-def actor_network(num_actions, lr=0.001):
+class Actor(tf.keras.Model):
     """
     creates a two layer nn with a soft max output layer for actor.
     we use 'categorical_crossentropy' as the loss function and Adam optimzer
@@ -31,34 +31,36 @@ def actor_network(num_actions, lr=0.001):
     num_actions - (int) 
     lr - (float)
     """
-    network = keras.Sequential([
-    keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
-    keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
-    keras.layers.Dense(num_actions, activation='softmax')
-    ])
-    network.compile(loss='categorical_crossentropy',optimizer=keras.optimizers.Adam(learning_rate = lr))
-    return network
+    def __init__(self, num_actions = 5):
+        super(Actor, self).__init__()
+        self.dense_1 = keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal())
+        self.dense_2 = keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal())
+        self.output_layer = keras.layers.Dense(num_actions, activation='softmax')
+
+    def call(self, inputs):
+        x = self.dense_1(inputs)
+        x = self.dense_2(x)
+        return self.output_layer(x)
 
 
 
 
-
-def critic_network(lr):
+class Critic(tf.keras.Model):
     """
     creates a two layer nn with a soft max output layer for critic.
-    we use 'huber loss' and adam optimzer
-    Arguments:
-    lr - (float)
     """
-    network = keras.Sequential([
-    keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
-    keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
-    keras.layers.Dense(1)
-    ])
-    huber_loss = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
-    network.compile(loss=huber_loss,optimizer=keras.optimizers.Adam(learning_rate = lr))
-    return network
+    def __init__(self):
+        super(Critic, self).__init__()
+        self.dense_1 = keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal())
+        self.dense_2 = keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal())
+        self.output_layer = keras.layers.Dense(1)
+        #self.compile(loss='categorical_crossentropy',optimizer=keras.optimizers.Adam())
 
+
+    def call(self, inputs):
+        x = self.dense_1(inputs)
+        x = self.dense_2(x)
+        return self.output_layer(x)
 
 
 
@@ -258,8 +260,15 @@ if args['use_gpu']:
         physical_devices = tf.config.list_physical_devices('GPU') 
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-actors = [actor_network(env.n_actions, lr=args['actor_lr']) for _ in range(env.n_agents)]
-critics = [critic_network(lr=args['critic_lr']) for _ in range(env.n_agents)]
+
+critics = [Critic() for _ in range(env.n_agents)]
+huber_loss = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
+for critic in critics:
+    critic.compile(loss = huber_loss, optimizer = keras.optimizers.Adam(learning_rate=args['critic_lr']))
+
+actors = [Actor(num_actions = env.n_actions) for _ in range(env.n_agents)]
+for actor in actors:
+    actor.compile(loss='categorical_crossentropy',optimizer=keras.optimizers.Adam(learning_rate=args['actor_lr']))
 
 reward_result = np.zeros(2500)
 paths, reward_result = train_multi_agent(env, args, actors, critics, reward_result)
