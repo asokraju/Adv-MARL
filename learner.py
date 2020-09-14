@@ -286,12 +286,12 @@ if args['use_gpu']:
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 
-critics = [Critic() for _ in range(env.n_agents)]
+critics = [Critic(grid_size= env.ncol) for _ in range(env.n_agents)]
 huber_loss = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
 for critic in critics:
     critic.compile(loss = huber_loss, optimizer = keras.optimizers.Adam(learning_rate=args['critic_lr']))
 
-actors = [Actor(num_actions = env.n_actions) for _ in range(env.n_agents)]
+actors = [Actor(grid_size= env.ncol, num_actions = env.n_actions) for _ in range(env.n_agents)]
 for actor in actors:
     actor.compile(loss='categorical_crossentropy',optimizer=keras.optimizers.Adam(learning_rate=args['actor_lr']))
 
