@@ -29,16 +29,23 @@ class Actor(tf.keras.Model):
     we use 'categorical_crossentropy' as the loss function and Adam optimzer
     Arguments:
     num_actions - (int) 
-    lr - (float)
     """
-    def __init__(self, num_actions = 5):
+    def __init__(self, grid_size= 6, num_actions = 5):
         super(Actor, self).__init__()
+        self.grid_size = grid_size
+
+        self.conv_1 = tf.keras.layers.Conv2D(filters=4, kernel_size=(2,2),kernel_initializer='he_normal', input_shape = (self.grid_size, self.grid_size, 1))
+        self.maxpool_1 = keras.layers.MaxPooling2D(2, 2)
+        self.flat_1 = keras.layers.Flatten()
         self.dense_1 = keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal())
         self.dense_2 = keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal())
         self.output_layer = keras.layers.Dense(num_actions, activation='softmax')
 
     def call(self, inputs):
-        x = self.dense_1(inputs)
+        x = self.conv_1(inputs)
+        x = self.maxpool_1(x)
+        x = self.flat_1(x)
+        x = self.dense_1(x)
         x = self.dense_2(x)
         return self.output_layer(x)
 
@@ -47,18 +54,27 @@ class Actor(tf.keras.Model):
 
 class Critic(tf.keras.Model):
     """
+    conv + maxpool + flat, then
     creates a two layer nn with a soft max output layer for critic.
     """
-    def __init__(self):
+    def __init__(self, grid_size= 6):
         super(Critic, self).__init__()
-        self.dense_1 = keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal())
-        self.dense_2 = keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal())
-        self.output_layer = keras.layers.Dense(1)
+        self.grid_size = grid_size
+
+        self.conv_1 = tf.keras.layers.Conv2D(filters=4, kernel_size=(2,2),kernel_initializer='he_normal', input_shape = (self.grid_size, self.grid_size, 1))
+        self.maxpool_1 = tf.keras.layers.MaxPooling2D(2, 2)
+        self.flat_1 = tf.keras.layers.Flatten()
+        self.dense_1 = tf.keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal())
+        self.dense_2 = tf.keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal())
+        self.output_layer = tf.keras.layers.Dense(1)
         #self.compile(loss='categorical_crossentropy',optimizer=keras.optimizers.Adam())
 
 
     def call(self, inputs):
-        x = self.dense_1(inputs)
+        x = self.conv_1(inputs)
+        x = self.maxpool_1(x)
+        x = self.flat_1(x)
+        x = self.dense_1(x)
         x = self.dense_2(x)
         return self.output_layer(x)
 
@@ -86,7 +102,7 @@ def discount_reward(rewards, gamma=0.95):
     return np.array(discounted_rewards).reshape((len, 1))
 
 
-def get_action(actor_model, state, eps=0.04):
+def get_action_grid(actor_model, state, eps=0.04):
     """
     given the actor model and the current state, it provide an epsilon greedy action
     Arguments:
@@ -95,14 +111,21 @@ def get_action(actor_model, state, eps=0.04):
     eps - float
     Returns: int
     """
-    p = actor_model.predict(np.reshape(state, (1,-1)))
+    p = actor_model.predict(state)
     n_actions = np.shape(p)[1]
     action_from_policy = np.random.choice(n_actions, p = p[0])
     random_action=np.random.choice(5)
     #np.random.choice([action_from_policy,random_action], p = [1-eps,eps])
     return np.random.choice([action_from_policy,random_action], p = [1-eps,eps])
 
-
+def state_grid(state):
+    state_1 = np.full((env.nrow, env.ncol), 0,dtype=np.float)
+    i_state = [list(env.i_state_transformation[key]) for key in state]
+    state_id = np.arange(1,env.n_agents+1,dtype=np.float)
+    for agent in range(env.n_agents):
+        local_state = i_state[agent]
+        state_1[local_state[0]][local_state[1]] = state_id[agent]
+    return state_1.reshape((1,env.nrow, env.ncol,1))
 
 def train_multi_agent(env, args, actors, critics, reward_result, plot=True):
     """
@@ -154,6 +177,7 @@ def train_multi_agent(env, args, actors, critics, reward_result, plot=True):
         j= 0
         for node in range(nodes):
             s, r, done, _ = env.get_node(node)
+            s = state_grid(s)
             s_scaled = (s-mean)/var
             obs[node].append(s.tolist())
             obs_scaled[node].append(s_scaled.tolist())
@@ -162,15 +186,16 @@ def train_multi_agent(env, args, actors, critics, reward_result, plot=True):
         while not done:
             for node in range(nodes):
                 if args['scaling']:
-                    a = get_action(actors[node], obs_scaled[node][-1], eps = eps)
+                    a = get_action_grid(actors[node], obs_scaled[node][-1], eps = eps)
                 else:
-                    a = get_action(actors[node], obs[node][-1], eps = eps)
+                    a = get_action_grid(actors[node], obs[node][-1], eps = eps)
                 actions[node].append(a)    
         
             _, new_reward, done, _ = env.step([actions[node][-1] for node in range(nodes)])
 
             for node in range(nodes):
                 s, r, done, _ = env.get_node(node)
+                s = state_grid(s)
                 obs[node].append(s.tolist())
                 s = (s-mean)/var
                 obs_scaled[node].append(s.tolist())
@@ -193,7 +218,7 @@ def train_multi_agent(env, args, actors, critics, reward_result, plot=True):
                     
                     targets_actions = np.array([[1 if a==i else 0 for i in range(env.n_actions)]  for j, a in enumerate(actions[node])])
                     V_s0 = critics[node].predict(states)
-                    V_s1 = critics[node].predict(np.reshape(final_state,(1, len(final_state))))
+                    V_s1 = critics[node].predict(np.reshape(final_state, (1,env.nrow, env.ncol,1)))
                     #print(V_s1)
                     fin_discount = np.array([args['gamma'] ** (i+1) for i in range(j)][::-1])*V_s1
                     td = returns + fin_discount.reshape((j,1)) - V_s0
@@ -223,8 +248,8 @@ def train_multi_agent(env, args, actors, critics, reward_result, plot=True):
 
                 path = {
                     "Observation":obs, 
-                    "Action":actions,#np.concatenate(actions), 
-                    "Reward":rewards#np.asarray(rewards)
+                    "Action":actions, 
+                    "Reward":rewards
                     }
                 paths.append(path)
                 break
