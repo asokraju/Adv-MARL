@@ -41,10 +41,12 @@ class Grid_World(gym.Env):
         self.reward, self.done = np.full_like(self.state, 0.0), False
 
     def _get_state(self):
-        self.state = np.array(random.sample(range(self.total_states), self.n_agents))
+        #self.state = np.array(random.sample(range(self.total_states), self.n_agents))
+        self.state = np.array(np.random.choice(range(self.total_states), self.n_agents, replace = False))
 
     def _get_desired(self):
-        self.desired_state = np.array(random.sample(range(self.total_states), self.n_agents))
+        #self.desired_state = np.array(random.sample(range(self.total_states), self.n_agents) )
+        self.desired_state = np.array(np.random.choice(range(self.total_states), self.n_agents, replace = False))
 
     def _set_state(self, state):
         self.state = state
@@ -115,7 +117,7 @@ class Grid_World(gym.Env):
         2- returns the current state numpy array of dim (self.n_agents, )
         """
         self._get_state()
-        self._get_desired()
+        #self._get_desired()
         return self.state
 
     def step(self, a):
@@ -171,7 +173,7 @@ class Grid_World(gym.Env):
     def close(self):
         pass
 # #example
-# env = Grid_World(6,6,5)
+env = Grid_World(6,6,5)
 # print(env.observation_space.shape[0])
 # print(env.action_space.shape[0])
 # state = env.reset()
