@@ -13,15 +13,14 @@ import datetime
 from scipy.io import savemat
 import tensorflow_probability as tfp
 from collections import deque
-
+import os
+import argparse
+import pprint as pp
 
 # local modules
 #from utilities.utils import ReplayBuffer
 from environments.grid_world import Grid_World
 #from adversary.agent import ActorNetwork, CriticNetwork, EstimatedGlobalReward, train_multi_agent
-
-env = Grid_World(6,6,5)
-
 
 class Actor(tf.keras.Model):
     """
@@ -215,10 +214,10 @@ def train_multi_agent(env, args, actors, critics, reward_result, plot=True):
                     tf.summary.scalar("critic loss", np.mean(crit_loss), step = t)
                     writer.flush()
                 print('| Reward: {} | Episode: {} | actor loss: {} |critic loss: {} |done: {}'.format(ep_reward, t, np.mean(act_loss), np.mean(crit_loss), done))
-                fig, ax = plt.subplots(nrows=1, ncols=5, figsize = (24,4))
-                for i in range(5):
-                    ax[i].plot(range(j), rewards[i])
-                plt.show()
+                # fig, ax = plt.subplots(nrows=1, ncols=5, figsize = (24,4))
+                # for i in range(env.n_agents):
+                #     ax[i].plot(range(j), rewards[i])
+                # plt.show()
                 reward_result[t] = ep_reward.sum()
 
                 path = {
@@ -231,46 +230,145 @@ def train_multi_agent(env, args, actors, critics, reward_result, plot=True):
     return [paths, reward_result] 
 
 
-args = {
-    'state_dim' : env.n_agents,
-    'action_dim' : env.n_actions,
-    'actor_lr': 0.001,
-    'batch_size' : 200,
-    'actor_l1' : 10,
-    'actor_l2' : 5,
-    'critic_lr':0.01,
-    'gamma':0.95,
-    'critic_l1':10,
-    'critic_l2':5,
-    'egr_lr':0.01,
-    'egr_l1':10,
-    'egr_l2':5,
-    'max_episodes':500,
-    'summary_dir':'./Power-Converters/marl/results',
-    'max_episode_len':1000,
-    'scaling':True,
-    'buffer_size':1000000,
-    'random_seed':1234,
-    'mini_batch_size':500,
-    'use_gpu':True
-}
-
-#tf.config.run_functions_eagerly(True)
-if args['use_gpu']:
+def main(args, reward_result):
+    #tf.config.run_functions_eagerly(True)
+    if args['use_gpu']:
         physical_devices = tf.config.list_physical_devices('GPU') 
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
+    env = Grid_World(6,6,5)
 
-critics = [Critic() for _ in range(env.n_agents)]
-huber_loss = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
-for critic in critics:
-    critic.compile(loss = huber_loss, optimizer = keras.optimizers.Adam(learning_rate=args['critic_lr']))
+    critics = [Critic() for _ in range(env.n_agents)]
+    huber_loss = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
+    for critic in critics:
+        critic.compile(loss = huber_loss, optimizer = keras.optimizers.Adam(learning_rate=args['critic_lr']))
 
-actors = [Actor(num_actions = env.n_actions) for _ in range(env.n_agents)]
-for actor in actors:
-    actor.compile(loss='categorical_crossentropy',optimizer=keras.optimizers.Adam(learning_rate=args['actor_lr']))
+    actors = [Actor(num_actions = env.n_actions) for _ in range(env.n_agents)]
+    for actor in actors:
+        actor.compile(loss='categorical_crossentropy',optimizer=keras.optimizers.Adam(learning_rate=args['actor_lr']))
 
-reward_result = np.zeros(2500)
-paths, reward_result = train_multi_agent(env, args, actors, critics, reward_result)
+    
+
+    #loading the weights
+    if args['load_model']:
+        for node in range(env.n_agents):
+            if os.path.isfile(args['summary_dir'] + "/actor_"+ str(node) + "_weights.h5"):
+                print('loading actor {} weights'.format(node+1))
+                actors[node].load_weights(args['summary_dir'] + "/actor_"+ str(node) + "_weights.h5")
+
+            if os.path.isfile(args['summary_dir'] + "/critic_"+ str(node) + "_weights.h5"):
+                print('loading critic {} weights'.format(node+1))
+                critics[node].load_weights(args['summary_dir'] + "/critic_"+ str(node) + "_weights.h5")
+    
+    paths, reward_result = train_multi_agent(env, args, actors, critics, reward_result)
+
+    if args['save_model']:
+        for node in range(env.n_agents):
+            actors[node].save_weights(
+            filepath = args['summary_dir'] + "/actor_"+ str(node) + "_weights.h5",
+            overwrite=True,
+            save_format='h5')
+            print('Saving actor {} weights'.format(node+1))
+
+            critics[node].save_weights(
+                filepath = args['summary_dir'] + "/critic_"+ str(node) + "_weights.h5",
+                overwrite=True,
+                save_format='h5')
+            print('Saving critic {} weights'.format(node+1))
+
+    #---------------------------------------------------------------------------
+    #Plotting an new testing environment
+    test_env = Grid_World(6,6,5)
+    nodes = test_env.n_agents
+
+    obs = [[] for _ in range(test_env.n_agents)]
+    obs_scaled = [[] for _ in range(test_env.n_agents)]
+    actions = [[] for _ in range(test_env.n_agents)]
+    rewards = [[] for _ in range(test_env.n_agents)]
+    x = np.arange(env.total_states)
+    if args['scaling']:
+        mean, var = x.mean(), x.var()
+    else:
+        mean, var = 0, 1
+    
+    for node in range(nodes):
+        s, r, done, _ = test_env.get_node(node)
+        s_scaled = (s-mean)/var
+        obs[node].append(s.tolist())
+        obs_scaled[node].append(s_scaled.tolist())
+        rewards[node].append(r)
+
+    done = False
+    j=0
+    while not done:
+        for node in range(nodes):
+            if args['scaling']:
+                a = get_action(actors[node], obs_scaled[node][-1], eps = 0)
+            else:
+                a = get_action(actors[node], obs[node][-1], eps = 0)
+            actions[node].append(a)
+
+        _, new_reward, done, _ = test_env.step([actions[node][-1] for node in range(nodes)])
+        for node in range(nodes):
+            s, r, done, _ = test_env.get_node(node)
+            obs[node].append(s.tolist())
+            s = (s-mean)/var
+            obs_scaled[node].append(s.tolist())
+            rewards[node].append(r)
+        j=j+1    
+        if done | (j==args['max_episode_len']):
+            fig, ax = plt.subplots(nrows=1, ncols=5, figsize = (24,4))
+            for i in range(test_env.n_agents):
+                ax[i].plot(range(j+1), rewards[i])
+            if args['savefig_filename']:
+                savefig_filename = os.path.join(args['summary_dir'], 'marl.png')
+                plt.savefig(savefig_filename)
+            else:
+                plt.show()
+            break
+
+    savemat(os.path.join(args['summary_dir'], 'marl.mat'), dict(data=paths, reward=reward_result))
+
+    return [actors, critics, paths, reward_result]
+
+
+
+if __name__ == '__main__':
+
+    #loading the environment to get it default params
+    #--------------------------------------------------------------------
+    env = Grid_World(6,6,5)
+    #---------------------------------------------------------------------
+
+
+    parser = argparse.ArgumentParser(description='provide arguments for DDPG agent')
+    #general params
+    parser.add_argument('--summary_dir', help='directory for saving and loading model and other data', default='./Power-Converters/kristools/results')
+    parser.add_argument('--use_gpu', help='weather to use gpu or not', type = bool, default=True)
+    parser.add_argument('--save_model', help='Saving model from summary_dir', type = bool, default=True)
+    parser.add_argument('--load_model', help='Loading model from summary_dir', type = bool, default=False)
+    parser.add_argument('--random_seed', help='seeding the random number generator', default=1754)
+
+    #
+    parser.add_argument('--actor_lr', help='learning rate for actor model', type = float, default=0.001)
+    parser.add_argument('--critic_lr', help='learning rate for critic model', type = float, default=0.01)
+    parser.add_argument('--gamma', help='models the long term returns', type = float, default=0.01)
+    parser.add_argument('--max_episodes', help='max number of episodes', type = int, default=500)
+    parser.add_argument('--max_episode_len', help='Number of steps per epsiode', type = int, default=1000)
+    parser.add_argument('--scaling', help='scaling the states', type = bool, default=True)
+    parser.add_argument('--savefig_filename', help='Saving the figure of the test simulation', type = bool, default=True)
+    parser.add_argument('--state_dim', help='learning rate for actor model', type = int, default=env.n_agents)
+    parser.add_argument('--action_dim', help='learning rate for critic model', type = int, default=env.n_actions)    
+    
+    #
+    args = vars(parser.parse_args())
+    pp.pprint(args)
+    
+    reward_result = np.zeros(2500)
+    [actors, critics, paths, reward_result] = main(args, reward_result)
+
+    savemat('data4_' + datetime.datetime.now().strftime("%y-%m-%d-%H-%M") + '.mat',dict(data=paths, reward=reward_result))
+
+
 
 
