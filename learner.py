@@ -358,8 +358,7 @@ if __name__ == '__main__':
     parser.add_argument('--scaling', help='scaling the states', type = bool, default=True)
     parser.add_argument('--savefig_filename', help='Saving the figure of the test simulation', type = bool, default=True)
     parser.add_argument('--state_dim', help='learning rate for actor model', type = int, default=env.n_agents)
-    parser.add_argument('--action_dim', help='learning rate for critic model', type = int, default=env.n_actions)    
-    
+    parser.add_argument('--action_dim', help='learning rate for critic model', type = int, default=env.n_actions)
     #
     args = vars(parser.parse_args())
     pp.pprint(args)
