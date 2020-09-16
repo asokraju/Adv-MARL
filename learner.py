@@ -138,8 +138,8 @@ def train_multi_agent(env, args, actors, critics, reward_result, plot=True):
         env.reset()
 
         #conditions on exploration
-        if t<50:
-            eps = _eps
+        if t<10:
+            eps = _eps/(t+1)
         else:
             eps = 0.04
 
