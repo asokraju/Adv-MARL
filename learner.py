@@ -132,7 +132,7 @@ def train_multi_agent(env, args, actors, critics, reward_result, plot=True):
     else:
         mean, var = 0, 1
 
-    _eps = .5
+    _eps = .1
     for t in range(args['max_episodes']):
         #resetting the environments
         env.reset()

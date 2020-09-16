@@ -115,6 +115,7 @@ class Grid_World(gym.Env):
         resets the environment
         1 - resets the state and its desired values to some random values
         2- returns the current state numpy array of dim (self.n_agents, )
+        does not rest the desired position
         """
         self._get_state()
         #self._get_desired()
