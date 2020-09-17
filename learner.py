@@ -11,8 +11,8 @@ from tensorflow import keras
 from tensorflow.keras import Input, Model, Sequential, layers
 import datetime
 from scipy.io import savemat
-import tensorflow_probability as tfp
 from collections import deque
+import os
 
 
 # local modules
