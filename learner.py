@@ -177,7 +177,6 @@ def train_multi_agent(env, args, actors, critics, reward_result, plot=True):
             ep_reward = ep_reward + new_reward
             j= j+1
             if done | (j==args['max_episode_len']):
-                act_loss, crit_loss = [], []
                 for node in range(nodes):
                     returns = discount_reward(rewards[node], gamma=args['gamma'])
                     returns -= np.mean(returns)
@@ -191,27 +190,23 @@ def train_multi_agent(env, args, actors, critics, reward_result, plot=True):
                         final_state = np.vstack(obs[node][-1])
                     
                     targets_actions = np.array([[1 if a==i else 0 for i in range(env.n_actions)]  for j, a in enumerate(actions[node])])
-                    V_s0 = critics[node].predict(states)
-                    V_s1 = critics[node].predict(np.reshape(final_state,(1, len(final_state))))
-                    #print(V_s1)
-                    fin_discount = np.array([args['gamma'] ** (i+1) for i in range(j)][::-1])*V_s1
-                    td = returns + fin_discount.reshape((j,1)) - V_s0
-                    #td = returns - V_s0
-                    #print('np.shape(V_s0), np.shape(returns), np.shape(td), np.shape(targets_actions), states.shape')
-                    #print(np.shape(V_s0), np.shape(returns), np.shape(td), np.shape(targets_actions), states.shape)
-                    # a_loss = actors[node].train_on_batch(states, targets_actions, sample_weight=td)
-                    # c_loss = critics[node].train_on_batch(states, returns+fin_discount.reshape((j,1)))
                     
-                    for _ in range(100):
-                        c_loss = critics[node].train_on_batch(states, returns+fin_discount.reshape((j,1)))
-                    for _ in range(10):
-                        a_loss = actors[node].train_on_batch(states, targets_actions, sample_weight=td.reshape(-1, ))
-                    act_loss.append(a_loss)
-                    crit_loss.append(c_loss)
+                    V_s0 = critics[node].predict(states)
+
+                    V_s1 = critics[node].predict(np.reshape(final_state,(1, len(final_state))))
+                    
+                    fin_discount = np.array([args['gamma'] ** (i+1) for i in range(j)][::-1])*V_s1
+                    
+                    td = returns + fin_discount.reshape((j,1)) - V_s0
+                    
+                    c_loss = critics[node].train_on_batch(states, returns+fin_discount.reshape((j,1)))
+                    
+                    a_loss = actors[node].train_on_batch(states, targets_actions, sample_weight=td.reshape(-1, ))
+
 
                 with writer.as_default():
-                    tf.summary.scalar("actor loss", np.mean(act_loss), step = t)
-                    tf.summary.scalar("critic loss", np.mean(crit_loss), step = t)
+                    tf.summary.scalar("actor loss", act_loss, step = t)
+                    tf.summary.scalar("critic loss", crit_loss, step = t)
                     writer.flush()
                 print('| Reward: {} | Episode: {} | actor loss: {} |critic loss: {} |done: {}'.format(ep_reward, t, np.mean(act_loss), np.mean(crit_loss), done))
                 # fig, ax = plt.subplots(nrows=1, ncols=5, figsize = (24,4))
@@ -232,13 +227,14 @@ def train_multi_agent(env, args, actors, critics, reward_result, plot=True):
 
 def main(args, reward_result):
     #tf.config.run_functions_eagerly(True)
-    if args['use_gpu']:
-        physical_devices = tf.config.list_physical_devices('GPU') 
-        tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    # if args['use_gpu']:
+    #     physical_devices = tf.config.list_physical_devices('GPU') 
+    #     tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
     env = Grid_World(6,6,5)
 
     critics = [Critic() for _ in range(env.n_agents)]
+    
     huber_loss = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
     for critic in critics:
         critic.compile(loss = huber_loss, optimizer = keras.optimizers.Adam(learning_rate=args['critic_lr']))
@@ -246,8 +242,9 @@ def main(args, reward_result):
     actors = [Actor(num_actions = env.n_actions) for _ in range(env.n_agents)]
     for actor in actors:
         actor.compile(loss='categorical_crossentropy',optimizer=keras.optimizers.Adam(learning_rate=args['actor_lr']))
-
-    
+    #critics[0].fit(np.vstack(env.reset()))
+    #critics[0].summary()
+    #actors[0].summary()
 
     #loading the weights
     if args['load_model']:
@@ -346,14 +343,14 @@ if __name__ == '__main__':
     parser.add_argument('--summary_dir', help='directory for saving and loading model and other data', default='./Power-Converters/kristools/results')
     parser.add_argument('--use_gpu', help='weather to use gpu or not', type = bool, default=True)
     parser.add_argument('--save_model', help='Saving model from summary_dir', type = bool, default=True)
-    parser.add_argument('--load_model', help='Loading model from summary_dir', type = bool, default=False)
+    parser.add_argument('--load_model', help='Loading model from summary_dir', type = bool, default=True)
     parser.add_argument('--random_seed', help='seeding the random number generator', default=1754)
 
     #
     parser.add_argument('--actor_lr', help='learning rate for actor model', type = float, default=0.001)
     parser.add_argument('--critic_lr', help='learning rate for critic model', type = float, default=0.01)
     parser.add_argument('--gamma', help='models the long term returns', type = float, default=0.01)
-    parser.add_argument('--max_episodes', help='max number of episodes', type = int, default=500)
+    parser.add_argument('--max_episodes', help='max number of episodes', type = int, default=1)
     parser.add_argument('--max_episode_len', help='Number of steps per epsiode', type = int, default=1000)
     parser.add_argument('--scaling', help='scaling the states', type = bool, default=True)
     parser.add_argument('--savefig_filename', help='Saving the figure of the test simulation', type = bool, default=True)
