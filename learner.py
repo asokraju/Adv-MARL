@@ -508,7 +508,7 @@ if __name__ == '__main__':
     #parser.add_argument('--use_gpu', help='weather to use gpu or not', type = bool, default=True)
     #parser.add_argument('--save_model', help='Saving model from summary_dir', type = bool, default=False)
     #parser.add_argument('--load_model', help='Loading model from summary_dir', type = bool, default=True)
-    parser.add_argument('--random_seed', help='seeding the random number generator', default=1754)
+    parser.add_argument('--random_seed', help='seeding the random number generator', type = int, default=1754)
     
     #agent params
     #parser.add_argument('--buffer_size', help='replay buffer size', type = int, default=1000000)
