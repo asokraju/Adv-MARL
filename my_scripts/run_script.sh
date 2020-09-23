@@ -8,6 +8,7 @@ do
       for random_seed in 10 20 30
       do
       ./gpu_batch.sh $test_name $actor_lr $critic_lr $random_seed
+      done
     done
   done
 done
