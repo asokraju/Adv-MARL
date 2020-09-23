@@ -330,7 +330,7 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                         c_loss = critics[node].train_on_batch(states, returns+fin_discount.reshape((j,1)))
                     
                     for _ in range(10-np.min([np.int(t/10),9])):
-                        a_loss = actors[node].train_on_batch(states, targets_actions, sample_weight=td)
+                        a_loss = actors[node].train_on_batch(states, targets_actions, sample_weight=td.reshape(-1, ))
                     act_loss.append(a_loss)
                     crit_loss.append(c_loss)
                 
