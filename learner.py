@@ -323,7 +323,7 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                     
                     #for _ in range(1000-np.min([np.int(t/1),999])):
                     tf.keras.backend.set_value(actors[node].optimizer.learning_rate, actor_learning_rate)
-                    a_loss = actors[node].train_on_batch(states, targets_actions, sample_weight=td)
+                    a_loss = actors[node].train_on_batch(states, targets_actions, sample_weight=td.reshape(-1, ))
                     act_loss.append(a_loss)
                     crit_loss.append(c_loss)
                 
@@ -342,10 +342,10 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                     tf.summary.scalar("critic loss", np.mean(rew_loss), step = t)
                     writer.flush()
                 print('| Reward: {} | Episode: {} | actor loss: {} |critic loss: {} | reward loss: {} | done: {}'.format(ep_reward, t, np.mean(act_loss), np.mean(crit_loss),np.mean(rew_loss), done))
-                fig, ax = plt.subplots(nrows=1, ncols=5, figsize = (24,4))
-                for i in range(5):
-                    ax[i].plot(range(j), rewards[i])
-                plt.show()
+                # fig, ax = plt.subplots(nrows=1, ncols=5, figsize = (24,4))
+                # for i in range(5):
+                #     ax[i].plot(range(j), rewards[i])
+                # plt.show()
                 reward_result[t] = ep_reward.sum()
 
                 path = {
