@@ -200,7 +200,7 @@ def get_action(actor_model, state, eps=0.04):
     #np.random.choice([action_from_policy,random_action], p = [1-eps,eps])
     return np.random.choice([action_from_policy,random_action], p = [1-eps,eps])
 
-def train_multi_agent(env, args, actors, critics, reward_result):
+def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
     
     # Needs 'ReplayBuffer' class
     writer = tf.summary.create_file_writer(logdir = args['summary_dir'])
@@ -485,7 +485,7 @@ def main(args, reward_result):
 
     rew_approx = [rew_1, rew_2, rew_3, rew_4, rew_5]
 
-    paths, reward_result = train_multi_agent(env, args, actors, critics, reward_result)
+    paths, reward_result = train_multi_agent(env, args, actors, critics, rew_approx, reward_result)
 
     savemat(os.path.join(args['summary_dir'], 'data.mat'), dict(data=paths, reward=reward_result))
 
