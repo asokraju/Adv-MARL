@@ -16,6 +16,9 @@ import os
 import argparse
 import pprint as pp
 
+
+
+
 class Grid_World(gym.Env):
     """
     Multi agent Grid-World
@@ -221,15 +224,18 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
         #resetting the environments
         env.reset()
 
-        critic_learning_rate = args['critic_lr']/(t+1)
-        actor_learning_rate = args['actor_lr']/(t+1)
-        rew_learning_rate =args['rew_lr']/(t+1)
         #conditions on exploration
         if t<10:
             eps = _eps/(t+1)
         # else:
-        #     eps = 0.01
+        #     eps = 0.04
 
+        #decreasing the learning rates:
+        if t>100:
+            for node in range(nodes):
+                tf.keras.backend.set_value(rew_approx[node].optimizer.learning_rate, args['rew_lr']*100/t)
+                tf.keras.backend.set_value(critics[node].optimizer.learning_rate, args['critic_lr']*100/t)
+                tf.keras.backend.set_value(actors[node].optimizer.learning_rate, args['actor_lr']*100/t)
         
         ep_reward = 0
 
@@ -283,8 +289,11 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                 for node in range(nodes):
                     states = np.vstack(obs_scaled[node][:-1])
 
-                    tf.keras.backend.set_value(rew_approx[node].optimizer.learning_rate, rew_learning_rate)
-                    r_loss = rew_approx[node].train_on_batch(states, np.reshape(rewards[node], (-1,1)))
+                    if t<100:
+                        for _ in range(100):
+                            r_loss = rew_approx[node].train_on_batch(states, np.reshape(rewards[node], (-1,1)))
+                    else:
+                        r_loss = rew_approx[node].train_on_batch(states, np.reshape(rewards[node], (-1,1)))
                     rew_loss.append(r_loss)
 
                 #Consensus update on the reward network
@@ -317,13 +326,11 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                     td = returns + fin_discount.reshape((j,1)) - V_s0
 
                     
-                    #for _ in range(1000-np.min([np.int(t/1), 999])):
-                    tf.keras.backend.set_value(critics[node].optimizer.learning_rate, critic_learning_rate) 
-                    c_loss = critics[node].train_on_batch(states, returns+fin_discount.reshape((j,1)))
+                    for _ in range(100-np.min([np.int(t/1), 99])):
+                        c_loss = critics[node].train_on_batch(states, returns+fin_discount.reshape((j,1)))
                     
-                    #for _ in range(1000-np.min([np.int(t/1),999])):
-                    tf.keras.backend.set_value(actors[node].optimizer.learning_rate, actor_learning_rate)
-                    a_loss = actors[node].train_on_batch(states, targets_actions, sample_weight=td.reshape(-1, ))
+                    for _ in range(10-np.min([np.int(t/10),9])):
+                        a_loss = actors[node].train_on_batch(states, targets_actions, sample_weight=td)
                     act_loss.append(a_loss)
                     crit_loss.append(c_loss)
                 
@@ -342,10 +349,10 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                     tf.summary.scalar("critic loss", np.mean(rew_loss), step = t)
                     writer.flush()
                 print('| Reward: {} | Episode: {} | actor loss: {} |critic loss: {} | reward loss: {} | done: {}'.format(ep_reward, t, np.mean(act_loss), np.mean(crit_loss),np.mean(rew_loss), done))
-                # fig, ax = plt.subplots(nrows=1, ncols=5, figsize = (24,4))
-                # for i in range(5):
-                #     ax[i].plot(range(j), rewards[i])
-                # plt.show()
+                fig, ax = plt.subplots(nrows=1, ncols=5, figsize = (24,4))
+                for i in range(5):
+                    ax[i].plot(range(j), rewards[i])
+                plt.show()
                 reward_result[t] = ep_reward.sum()
 
                 path = {
@@ -513,11 +520,11 @@ if __name__ == '__main__':
     #agent params
     #parser.add_argument('--buffer_size', help='replay buffer size', type = int, default=1000000)
     parser.add_argument('--max_episodes', help='max number of episodes', type = int, default=500)
-    parser.add_argument('--max_episode_len', help='Number of steps per epsiode', type = int, default=200)
+    parser.add_argument('--max_episode_len', help='Number of steps per epsiode', type = int, default=500)
     #parser.add_argument('--mini_batch_size', help='sampling batch size',type =int, default=200)
-    parser.add_argument('--actor_lr', help='actor network learning rate',type =float, default=0.01)
-    parser.add_argument('--critic_lr', help='critic network learning rate',type =float, default=0.1)
-    parser.add_argument('--rew_lr', help='critic network learning rate',type =float, default=0.1)
+    parser.add_argument('--actor_lr', help='actor network learning rate',type =float, default=0.001)
+    parser.add_argument('--critic_lr', help='critic network learning rate',type =float, default=0.001)
+    parser.add_argument('--rew_lr', help='critic network learning rate',type =float, default=0.001)
     parser.add_argument('--gamma', help='models the long term returns', type =float, default=0.999)
     #parser.add_argument('--noise_var', help='Variance of the exploration noise', default=0.0925)
     parser.add_argument('--scaling', help='weather to scale the states before using for training', type = bool, default=True)
