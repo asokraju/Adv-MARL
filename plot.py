@@ -89,15 +89,50 @@ def plot_agent_rewards(paths, episodes, savefig_filename, set_format = 'pdf', co
         plt.savefig(savefig_filename, format = set_format)
     else:
         plt.show()
+# ##%
+# path = './Power-Converters/marl/results/matfiles/'
+# files_1 = os.listdir(path + 'method_1/')
+# files_2 = os.listdir(path + 'method_2/')
+
+# #print(files)
+# paths_1 = [path + 'method_1/' + file for file in files_1]
+# paths_2 = [path + 'method_2/' + file for file in files_2]
+# print(paths_1, files_2)
+# print(paths_2)
+# plot_agent_rewards(paths = paths_1 + paths_2, episodes = 100, savefig_filename=path+'true.pdf', set_format = 'pdf', compute = True)
+# plot_agent_rewards(paths = paths_1 + paths_2, episodes = 100, savefig_filename=path+'compramized.pdf', set_format = 'pdf', compute = False)
+
+# #plot_agent_rewards(paths_ddpg, episodes = 200)
+
+# ##%
+# path = './Power-Converters/marl/results/matfiles-crc/'
+
+# files_1 = os.listdir(path + 'test-1/')
+# files_2 = os.listdir(path + 'test-2/')
+
+# #print(files)
+# paths_1 = [path + 'test-1/' + file for file in files_1]
+# paths_2 = [path + 'test-2/' + file for file in files_2]
+
+# print(paths_1, files_2)
+# print(paths_2)
+# plot_agent_rewards(paths = paths_1 + paths_2, episodes = 500, savefig_filename=path+'true.pdf', set_format = 'pdf', compute = True)
+# plot_agent_rewards(paths = paths_1 + paths_2, episodes = 500, savefig_filename=path+'compramized.pdf', set_format = 'pdf', compute = False)
+
+# # #plot_agent_rewards(paths_ddpg, episodes = 200)
+
+
+# #plot_agent_rewards(paths_ddpg, episodes = 200)
+
 ##%
-path = './Power-Converters/marl/results/matfiles/'
-files_1 = os.listdir(path + 'method_1/')
-files_2 = os.listdir(path + 'method_2/')
+path = './Power-Converters/marl/results/matfiles-crc/'
+
+files_1 = os.listdir(path + 'test-3/')
 
 #print(files)
-paths_1 = [path + 'method_1/' + file for file in files_1]
-paths_2 = [path + 'method_2/' + file for file in files_2]
-print(paths_1, files_2)
-print(paths_2)
-plot_agent_rewards(paths = paths_1 + paths_2, episodes = 100, savefig_filename=path+'plot.pdf', set_format = 'pdf', compute = True)
-#plot_agent_rewards(paths_ddpg, episodes = 200)
+paths_3 = [path + 'test-3/' + file for file in files_1]
+print(paths_3)
+plot_agent_rewards(paths = paths_3, episodes = 500, savefig_filename=path+'true.pdf', set_format = 'pdf', compute = True)
+plot_agent_rewards(paths = paths_3, episodes = 500, savefig_filename=path+'compramized.pdf', set_format = 'pdf', compute = False)
+
+# #plot_agent_rewards(paths_ddpg, episodes = 200)
