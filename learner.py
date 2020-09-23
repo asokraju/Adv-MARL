@@ -513,7 +513,7 @@ if __name__ == '__main__':
     #agent params
     #parser.add_argument('--buffer_size', help='replay buffer size', type = int, default=1000000)
     parser.add_argument('--max_episodes', help='max number of episodes', type = int, default=500)
-    parser.add_argument('--max_episode_len', help='Number of steps per epsiode', type = int, default=1200)
+    parser.add_argument('--max_episode_len', help='Number of steps per epsiode', type = int, default=200)
     #parser.add_argument('--mini_batch_size', help='sampling batch size',type =int, default=200)
     parser.add_argument('--actor_lr', help='actor network learning rate',type =float, default=0.01)
     parser.add_argument('--critic_lr', help='critic network learning rate',type =float, default=0.1)
