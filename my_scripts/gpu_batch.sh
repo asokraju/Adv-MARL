@@ -10,7 +10,7 @@ EXEC_DIR=$PWD                            #gpu_batch script is inside this dir
 TEST_NAME_DIR="test_name=${TEST_NAME}"   #directory with test name
 A_LR_DIR="a_lr=${A_LR}"               #directory for parameter gamma name
 C_LR_DIR="c_lr=${C_LR}"                #directory for parameter time steps name
-R_SEED_DIR ="seed=${R_SEED}"
+R_SEED_DIR="seed=${R_SEED}"
 
 mkdir -p $TEST_NAME_DIR                  #making a directory with test name
 RESULTS_DIR=${EXEC_DIR}/${TEST_NAME_DIR} #Directory for results
