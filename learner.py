@@ -302,7 +302,7 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                     states = np.vstack(obs_scaled[node][:-1])
                     final_state = np.vstack(obs_scaled[node][-1])
                     predicted_rewards = rew_approx[node].predict(states)
-                    predicted_rewards_all.append(predicted_rewards)
+                    predicted_rewards_all[node].append(predicted_rewards)
                     if args['adversary']:
                         if node==0:
                             returns = discount_reward(rewards[node], GAMMA=args['gamma'])
