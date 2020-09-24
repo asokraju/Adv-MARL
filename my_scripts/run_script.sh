@@ -5,7 +5,7 @@ do
   do
     for critic_lr in 0.01
     do 
-      for random_seed in 10 20 30 40 50 60
+      for random_seed in 10 20 30 40 50 60 1234 1301 600
       do
       ./gpu_batch.sh $test_name $actor_lr $critic_lr $random_seed
       done

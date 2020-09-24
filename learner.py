@@ -510,10 +510,10 @@ if __name__ == '__main__':
     #parser.add_argument('--save_model', help='Saving model from summary_dir', type = bool, default=False)
     #parser.add_argument('--load_model', help='Loading model from summary_dir', type = bool, default=True)
     parser.add_argument('--random_seed', help='seeding the random number generator', type = int, default=1754)
-    parser.add_argument('--adversary', help='Is node 1 an adversary?', type = bool, default=False)
+    parser.add_argument('--adversary', help='Is node 1 an adversary?', type = bool, default=True)
 
     #agent params
-    parser.add_argument('--max_episodes', help='max number of episodes', type = int, default=500)
+    parser.add_argument('--max_episodes', help='max number of episodes', type = int, default=200)
     parser.add_argument('--max_episode_len', help='Number of steps per epsiode', type = int, default=1000)
     parser.add_argument('--actor_lr', help='actor network learning rate',type =float, default=0.01)
     parser.add_argument('--critic_lr', help='critic network learning rate',type =float, default=0.01)
