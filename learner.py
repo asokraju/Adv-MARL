@@ -283,7 +283,10 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                 act_loss, crit_loss, rew_loss = [], [], []
                 #training the reward network
                 for node in range(nodes):
-                    states = np.vstack(obs_scaled[node][:-1])
+                    if args['scaling']:
+                        states = np.vstack(obs_scaled[node][:-1])
+                    else:
+                        states = np.vstack(obs[node][:-1])
 
                     for _ in range(100):
                         r_loss = rew_approx[node].train_on_batch(states, np.reshape(rewards[node], (-1,1)))
@@ -299,8 +302,12 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
 
                 #training the Actor and Critic networks
                 for node in range(nodes):
-                    states = np.vstack(obs_scaled[node][:-1])
-                    final_state = np.vstack(obs_scaled[node][-1])
+                    if args['scaling']:
+                        states = np.vstack(obs_scaled[node][:-1])
+                        final_state = np.vstack(obs_scaled[node][-1])
+                    else:
+                        states = np.vstack(obs[node][:-1])
+                        final_state = np.vstack(obs[node][-1])
                     predicted_rewards = rew_approx[node].predict(states)
                     predicted_rewards_all[node].append(predicted_rewards)
                     if args['adversary']:
@@ -342,7 +349,7 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                 with writer.as_default():
                     tf.summary.scalar("actor loss", np.mean(act_loss), step = t)
                     tf.summary.scalar("critic loss", np.mean(crit_loss), step = t)
-                    tf.summary.scalar("critic loss", np.mean(rew_loss), step = t)
+                    tf.summary.scalar("rew loss", np.mean(rew_loss), step = t)
                     writer.flush()
                 print('| Reward: {} | Episode: {} | actor loss: {} |critic loss: {} | reward loss: {} | done: {}'.format(ep_reward, t, np.mean(act_loss), np.mean(crit_loss),np.mean(rew_loss), done))
                 # fig, ax = plt.subplots(nrows=1, ncols=5, figsize = (24,4))
