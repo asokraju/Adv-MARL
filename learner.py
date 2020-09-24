@@ -501,9 +501,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='provide arguments for DDPG agent')
     #loading the environment to get it default params
     env = Grid_World(6,6,5)
-    #state_dim = env.observation_space.shape[0]
-    #action_dim = env.action_space.shape[0]
-    #action_bound = env.action_space.high
     #--------------------------------------------------------------------
     parser = argparse.ArgumentParser(description='provide arguments for DDPG agent')
 
@@ -516,10 +513,8 @@ if __name__ == '__main__':
     parser.add_argument('--adversary', help='Is node 1 an adversary?', type = bool, default=False)
 
     #agent params
-    #parser.add_argument('--buffer_size', help='replay buffer size', type = int, default=1000000)
     parser.add_argument('--max_episodes', help='max number of episodes', type = int, default=500)
     parser.add_argument('--max_episode_len', help='Number of steps per epsiode', type = int, default=1000)
-    #parser.add_argument('--mini_batch_size', help='sampling batch size',type =int, default=200)
     parser.add_argument('--actor_lr', help='actor network learning rate',type =float, default=0.01)
     parser.add_argument('--critic_lr', help='critic network learning rate',type =float, default=0.01)
     parser.add_argument('--rew_lr', help='critic network learning rate',type =float, default=0.01)
