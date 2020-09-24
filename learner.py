@@ -237,6 +237,7 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
         obs, obs_scaled, actions, rewards = [[] for _ in range(nodes)], [[] for _ in range(nodes)], [[] for _ in range(nodes)], [[] for _ in range(nodes)]
         predicted_rewards_all = [[] for _ in range(nodes)]
         rewards_mean = [[] for _ in range(nodes)]
+        
         #rewards_predicted = [[] for _ in range(nodes)]
         done = False
         #running the episode
@@ -301,6 +302,8 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                         rew_approx[node].trainable_variables[i].assign(temp/env.n_agents)
 
                 #training the Actor and Critic networks
+                node_true_returns = []
+                node_predicted_returns = []
                 for node in range(nodes):
                     if args['scaling']:
                         states = np.vstack(obs_scaled[node][:-1])
@@ -323,10 +326,12 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                     predicted_returns = discount_reward(predicted_rewards, GAMMA=args['gamma'])
                     predicted_returns -= np.mean(predicted_returns)
                     predicted_returns /= np.std(predicted_returns)
+                    node_predicted_returns.append(predicted_returns[0])
 
                     returns = discount_reward(rewards[node], GAMMA=args['gamma'])
                     returns -= np.mean(returns)
                     returns /= np.std(returns)
+                    node_true_returns.append(returns[0])
 
                     targets_actions = np.array([[1 if a==i else 0 for i in range(env.n_actions)]  for j, a in enumerate(actions[node])])
 
@@ -337,10 +342,10 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                     td = predicted_returns + fin_discount.reshape((j,1)) - V_s0
 
                     
-                    for _ in range(100-np.min([np.int(t/1), 99])):
+                    for _ in range(100):
                         c_loss = critics[node].train_on_batch(states, returns+fin_discount.reshape((j,1)))
                     
-                    for _ in range(10-np.min([np.int(t/10),9])):
+                    for _ in range(10):
                         a_loss = actors[node].train_on_batch(states, targets_actions, sample_weight=td.reshape(-1, ))
                     act_loss.append(a_loss)
                     crit_loss.append(c_loss)
@@ -365,12 +370,13 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                 #     ax[i].plot(range(j), rewards[i])
                 # plt.show()
                 reward_result[t] = ep_reward.sum()
-
                 path = {
                     "Observation":obs, 
                     "Action":actions,#np.concatenate(actions), 
                     "Reward":rewards,#np.asarray(rewards)
-                    "predicted_rewards_all":predicted_rewards_all
+                    "predicted_rewards_all":predicted_rewards_all,
+                    "true returns":np.mean(node_true_returns),
+                    "predicted returns":np.mean(node_predicted_returns)
                     }
                 paths.append(path)
                 break
@@ -525,7 +531,7 @@ if __name__ == '__main__':
     #parser.add_argument('--save_model', help='Saving model from summary_dir', type = bool, default=False)
     #parser.add_argument('--load_model', help='Loading model from summary_dir', type = bool, default=True)
     parser.add_argument('--random_seed', help='seeding the random number generator', type = int, default=1754)
-    parser.add_argument('--adversary', help='Is node 1 an adversary?', type = bool, default=True)
+    parser.add_argument('--adversary', help='Is node 1 an adversary?', type = bool, default=False)
 
     #agent params
     parser.add_argument('--max_episodes', help='max number of episodes', type = int, default=200)
