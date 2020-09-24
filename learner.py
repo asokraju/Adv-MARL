@@ -370,42 +370,42 @@ def main(args, reward_result):
 
     env = Grid_World(6,6,5)
 
-    num_actions = env.n_actions
-
+    num_actions = env.n_agents
+    
     actor_1 = keras.Sequential([
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(num_actions, activation='softmax')
     ])
-    actor_1.compile(loss='categorical_crossentropy',optimizer=keras.optimizers.Adam(learning_rate=0.01))
+    actor_1.compile(loss='categorical_crossentropy',optimizer=keras.optimizers.Adam())
 
     actor_2 = keras.Sequential([
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(num_actions, activation='softmax')
     ])
-    actor_2.compile(loss='categorical_crossentropy',optimizer=keras.optimizers.Adam(learning_rate=0.01))
+    actor_2.compile(loss='categorical_crossentropy',optimizer=keras.optimizers.Adam())
 
     actor_3 = keras.Sequential([
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(num_actions, activation='softmax')
     ])
-    actor_3.compile(loss='categorical_crossentropy',optimizer=keras.optimizers.Adam(learning_rate=0.01))
+    actor_3.compile(loss='categorical_crossentropy',optimizer=keras.optimizers.Adam())
 
     actor_4 = keras.Sequential([
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(num_actions, activation='softmax')
     ])
-    actor_4.compile(loss='categorical_crossentropy',optimizer=keras.optimizers.Adam(learning_rate=0.01))
+    actor_4.compile(loss='categorical_crossentropy',optimizer=keras.optimizers.Adam())
 
     actor_5 = keras.Sequential([
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(num_actions, activation='softmax')
     ])
-    actor_5.compile(loss='categorical_crossentropy',optimizer=keras.optimizers.Adam(learning_rate=0.01))
+    actor_5.compile(loss='categorical_crossentropy',optimizer=keras.optimizers.Adam())
 
     actors = [actor_1, actor_2, actor_3, actor_4, actor_5]
 
@@ -417,35 +417,35 @@ def main(args, reward_result):
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(critic_output)
     ])
-    critic_1.compile(loss='mse',optimizer=keras.optimizers.Adam(learning_rate=0.01))
+    critic_1.compile(loss='mse',optimizer=keras.optimizers.Adam())
 
     critic_2 = keras.Sequential([
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(critic_output)
     ])
-    critic_2.compile(loss='mse',optimizer=keras.optimizers.Adam(learning_rate=0.01))
+    critic_2.compile(loss='mse',optimizer=keras.optimizers.Adam())
 
     critic_3 = keras.Sequential([
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(critic_output)
     ])
-    critic_3.compile(loss='mse',optimizer=keras.optimizers.Adam(learning_rate=0.01))
+    critic_3.compile(loss='mse',optimizer=keras.optimizers.Adam())
 
     critic_4 = keras.Sequential([
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(critic_output)
     ])
-    critic_4.compile(loss='mse',optimizer=keras.optimizers.Adam(learning_rate=0.01))
+    critic_4.compile(loss='mse',optimizer=keras.optimizers.Adam())
 
     critic_5 = keras.Sequential([
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(30, activation='relu', kernel_initializer=keras.initializers.he_normal()),
         keras.layers.Dense(critic_output)
     ])
-    critic_5.compile(loss='mse',optimizer=keras.optimizers.Adam(learning_rate=0.01))
+    critic_5.compile(loss='mse',optimizer=keras.optimizers.Adam())
 
     critics = [critic_1, critic_2, critic_3, critic_4, critic_5]
 
