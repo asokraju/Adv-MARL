@@ -195,7 +195,7 @@ def discount_reward(rewards, GAMMA=0.95):
     len = discounted_rewards.shape[0]
     return np.array(discounted_rewards).reshape((len, 1))
 
-def get_action(actor_model, state, eps=0.04):
+def get_action(actor_model, state, eps=0.01):
     p = actor_model.predict(np.reshape(state, (1,-1)))#.numpy()
     n_actions = np.shape(p)[1]
     action_from_policy = np.random.choice(n_actions, p = p[0])
@@ -228,13 +228,14 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
         if t<10:
             eps = _eps/(t+1)
         else:
-            eps = 0.04
+            eps = 0.01
 
         
         ep_reward = 0
 
         #initializing the lists
         obs, obs_scaled, actions, rewards = [[] for _ in range(nodes)], [[] for _ in range(nodes)], [[] for _ in range(nodes)], [[] for _ in range(nodes)]
+        predicted_rewards_all = [[] for _ in range(nodes)]
         rewards_mean = [[] for _ in range(nodes)]
         #rewards_predicted = [[] for _ in range(nodes)]
         done = False
@@ -300,6 +301,7 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                     states = np.vstack(obs_scaled[node][:-1])
                     final_state = np.vstack(obs_scaled[node][-1])
                     predicted_rewards = rew_approx[node].predict(states)
+                    predicted_rewards_all.append(predicted_rewards)
                     if node==0:
                         returns = discount_reward(rewards[node], GAMMA=args['gamma'])
                     else:
@@ -340,16 +342,17 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                     tf.summary.scalar("critic loss", np.mean(rew_loss), step = t)
                     writer.flush()
                 print('| Reward: {} | Episode: {} | actor loss: {} |critic loss: {} | reward loss: {} | done: {}'.format(ep_reward, t, np.mean(act_loss), np.mean(crit_loss),np.mean(rew_loss), done))
-                fig, ax = plt.subplots(nrows=1, ncols=5, figsize = (24,4))
-                for i in range(5):
-                    ax[i].plot(range(j), rewards[i])
-                plt.show()
+                # fig, ax = plt.subplots(nrows=1, ncols=5, figsize = (24,4))
+                # for i in range(5):
+                #     ax[i].plot(range(j), rewards[i])
+                # plt.show()
                 reward_result[t] = ep_reward.sum()
 
                 path = {
                     "Observation":obs, 
                     "Action":actions,#np.concatenate(actions), 
-                    "Reward":rewards#np.asarray(rewards)
+                    "Reward":rewards,#np.asarray(rewards)
+                    "predicted_rewards_all":predicted_rewards_all
                     }
                 paths.append(path)
                 break
@@ -511,12 +514,12 @@ if __name__ == '__main__':
     #agent params
     #parser.add_argument('--buffer_size', help='replay buffer size', type = int, default=1000000)
     parser.add_argument('--max_episodes', help='max number of episodes', type = int, default=500)
-    parser.add_argument('--max_episode_len', help='Number of steps per epsiode', type = int, default=500)
+    parser.add_argument('--max_episode_len', help='Number of steps per epsiode', type = int, default=1000)
     #parser.add_argument('--mini_batch_size', help='sampling batch size',type =int, default=200)
-    parser.add_argument('--actor_lr', help='actor network learning rate',type =float, default=0.001)
-    parser.add_argument('--critic_lr', help='critic network learning rate',type =float, default=0.001)
-    parser.add_argument('--rew_lr', help='critic network learning rate',type =float, default=0.001)
-    parser.add_argument('--gamma', help='models the long term returns', type =float, default=0.999)
+    parser.add_argument('--actor_lr', help='actor network learning rate',type =float, default=0.01)
+    parser.add_argument('--critic_lr', help='critic network learning rate',type =float, default=0.01)
+    parser.add_argument('--rew_lr', help='critic network learning rate',type =float, default=0.01)
+    parser.add_argument('--gamma', help='models the long term returns', type =float, default=0.95)
     #parser.add_argument('--noise_var', help='Variance of the exploration noise', default=0.0925)
     parser.add_argument('--scaling', help='weather to scale the states before using for training', type = bool, default=True)
     
