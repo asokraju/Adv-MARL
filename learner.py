@@ -266,7 +266,7 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
         
             _, new_reward, done, _ = env.step([actions[node][-1] for node in range(nodes)])
             if done:
-                print("done={}".formaat(done))
+                print("done={}".format(done))
             for node in range(nodes):
                 s, r, done, _ = env.get_node(node)
                 obs[node].append(s.tolist())
