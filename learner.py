@@ -310,23 +310,31 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                         final_state = np.vstack(obs[node][-1])
                     predicted_rewards = rew_approx[node].predict(states)
                     predicted_rewards_all[node].append(predicted_rewards)
-                    if args['adversary']:
-                        if node==0:
-                            returns = discount_reward(rewards[node], GAMMA=args['gamma'])
-                        else:
-                            returns = discount_reward(predicted_rewards, GAMMA=args['gamma'])
-                    else:
-                        returns = discount_reward(predicted_rewards, GAMMA=args['gamma'])
+                    # if args['adversary']:
+                    #     if node==0:
+                    #         returns = discount_reward(rewards[node], GAMMA=args['gamma'])
+                    #     else:
+                    #         returns = discount_reward(predicted_rewards, GAMMA=args['gamma'])
+                    # else:
+                    #     returns = discount_reward(predicted_rewards, GAMMA=args['gamma'])
+                    # returns -= np.mean(returns)
+                    # returns /= np.std(returns)
+                    
+                    predicted_returns = discount_reward(predicted_rewards, GAMMA=args['gamma'])
+                    predicted_returns -= np.mean(predicted_returns)
+                    predicted_returns /= np.std(predicted_returns)
+
+                    returns = discount_reward(rewards[node], GAMMA=args['gamma'])
                     returns -= np.mean(returns)
                     returns /= np.std(returns)
-                    
+
                     targets_actions = np.array([[1 if a==i else 0 for i in range(env.n_actions)]  for j, a in enumerate(actions[node])])
 
                     V_s0 = critics[node].predict(states)
                     V_s1 = critics[node].predict(np.reshape(final_state,(1, len(final_state))))
 
                     fin_discount = np.array([args['gamma'] ** (i+1) for i in range(j)][::-1])*V_s1
-                    td = returns + fin_discount.reshape((j,1)) - V_s0
+                    td = predicted_returns + fin_discount.reshape((j,1)) - V_s0
 
                     
                     for _ in range(100-np.min([np.int(t/1), 99])):
