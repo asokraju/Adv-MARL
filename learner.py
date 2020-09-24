@@ -265,13 +265,14 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
             for node in range(nodes):
                 s, r, done, _ = env.get_node(node)
                 obs[node].append(s.tolist())
-                if node==0:
-                    temp = 0
-                    for s1, s2 in zip(adv_des,s):
-                        x1, y1 = env.i_state_transformation[s1]
-                        x2, y2 = env.i_state_transformation[s2]
-                        temp = temp + abs(x1-x2)+abs(y1-y2)
-                    r =  -3*temp
+                if args['adversary']:
+                    if node==0:
+                        temp = 0
+                        for s1, s2 in zip(adv_des,s):
+                            x1, y1 = env.i_state_transformation[s1]
+                            x2, y2 = env.i_state_transformation[s2]
+                            temp = temp + abs(x1-x2)+abs(y1-y2)
+                        r =  -3*temp
                 s = (s-mean)/var
                 obs_scaled[node].append(s.tolist())
                 rewards[node].append(r)
@@ -302,11 +303,13 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                     final_state = np.vstack(obs_scaled[node][-1])
                     predicted_rewards = rew_approx[node].predict(states)
                     predicted_rewards_all.append(predicted_rewards)
-                    if node==0:
-                        returns = discount_reward(rewards[node], GAMMA=args['gamma'])
+                    if args['adversary']:
+                        if node==0:
+                            returns = discount_reward(rewards[node], GAMMA=args['gamma'])
+                        else:
+                            returns = discount_reward(predicted_rewards, GAMMA=args['gamma'])
                     else:
                         returns = discount_reward(predicted_rewards, GAMMA=args['gamma'])
-                    #returns = discount_reward(rewards_mean[node], GAMMA=args['gamma'])
                     returns -= np.mean(returns)
                     returns /= np.std(returns)
                     
@@ -505,12 +508,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='provide arguments for DDPG agent')
 
     #general params
-    parser.add_argument('--summary_dir', help='directory for saving and loading model and other data', default='./Power-Converters/kristools/results')
+    parser.add_argument('--summary_dir', help='directory for saving and loading model and other data', default='./Power-Converters/marl/results')
     #parser.add_argument('--use_gpu', help='weather to use gpu or not', type = bool, default=True)
     #parser.add_argument('--save_model', help='Saving model from summary_dir', type = bool, default=False)
     #parser.add_argument('--load_model', help='Loading model from summary_dir', type = bool, default=True)
     parser.add_argument('--random_seed', help='seeding the random number generator', type = int, default=1754)
-    
+    parser.add_argument('--adversary', help='Is node 1 an adversary?', type = bool, default=False)
+
     #agent params
     #parser.add_argument('--buffer_size', help='replay buffer size', type = int, default=1000000)
     parser.add_argument('--max_episodes', help='max number of episodes', type = int, default=500)
