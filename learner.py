@@ -328,7 +328,7 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                     predicted_returns /= np.std(predicted_returns)
                     node_predicted_returns.append(predicted_returns[0])
 
-                    returns = discount_reward(rewards[node], GAMMA=args['gamma'])
+                    returns = discount_reward(rewards_mean[node], GAMMA=args['gamma'])
                     returns -= np.mean(returns)
                     returns /= np.std(returns)
                     node_true_returns.append(returns[0])
@@ -339,7 +339,7 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
                     V_s1 = critics[node].predict(np.reshape(final_state,(1, len(final_state))))
 
                     fin_discount = np.array([args['gamma'] ** (i+1) for i in range(j)][::-1])*V_s1
-                    td = predicted_returns + fin_discount.reshape((j,1)) - V_s0
+                    td = returns + fin_discount.reshape((j,1)) - V_s0
 
                     
                     for _ in range(100):
