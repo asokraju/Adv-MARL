@@ -56,7 +56,7 @@ class Grid_World(gym.Env):
         self.state = np.array(random.sample(range(self.total_states), self.n_agents))
 
     def _get_desired(self):
-        self.desired_state = np.array([0, 4, 14, 24, 32])#np.array(random.sample(range(self.total_states), self.n_agents) )
+        self.desired_state = np.array([0,5 , 30, 35, 32])#np.array(random.sample(range(self.total_states), self.n_agents) )
 
     def _set_state(self, state):
         self.state = state
@@ -128,6 +128,7 @@ class Grid_World(gym.Env):
         """
         self._get_state()
         #self._get_desired()
+        self.done=False
         return self.state
 
     def step(self, a):
@@ -253,6 +254,7 @@ def train_multi_agent(env, args, actors, critics, rew_approx, reward_result):
         if done:
             print(t,j)
         while not done:
+        #for j in range(args['max_episode_len']):
             for node in range(nodes):
                 if args['scaling']:
                     a = get_action(actors[node], obs_scaled[node][-1], eps = eps)
@@ -534,8 +536,8 @@ if __name__ == '__main__':
     parser.add_argument('--adversary', help='Is node 1 an adversary?', type = bool, default=False)
 
     #agent params
-    parser.add_argument('--max_episodes', help='max number of episodes', type = int, default=200)
-    parser.add_argument('--max_episode_len', help='Number of steps per epsiode', type = int, default=1000)
+    parser.add_argument('--max_episodes', help='max number of episodes', type = int, default=4)
+    parser.add_argument('--max_episode_len', help='Number of steps per epsiode', type = int, default=100)
     parser.add_argument('--actor_lr', help='actor network learning rate',type =float, default=0.01)
     parser.add_argument('--critic_lr', help='critic network learning rate',type =float, default=0.01)
     parser.add_argument('--rew_lr', help='critic network learning rate',type =float, default=0.01)
