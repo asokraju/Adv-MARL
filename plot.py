@@ -59,6 +59,7 @@ def net_reward_2(paths, episodes):
     return r_agent
 
 def net_compute_reward(paths, episodes):
+    des=np.array([0, 4, 14, 24, 32])
     r_agent = [[] for _ in  range(5)]
     #predicted_rewards_all = [[] for _ in  range(5)]
     for mat_path in iter(paths):
@@ -80,6 +81,7 @@ def net_compute_reward(paths, episodes):
     return r_agent
 
 def net_compute_reward_2(paths, episodes):
+    des=np.array([0,5 , 30, 35, 32])#np.array([0, 4, 14, 24, 32])
     r_agent = [[] for _ in  range(5)]
     #predicted_rewards_all = [[] for _ in  range(5)]
     for mat_path in iter(paths):
@@ -150,12 +152,15 @@ path = './Power-Converters/marl/results/matfiles/'
 files_1 = os.listdir(path + 'Adversory/')
 files_2 = os.listdir(path + 'Adversory_1/')
 files_3 = os.listdir(path + 'No_Adversory/')
+files_4 = os.listdir(path + 'No_Adversory_new/')
+
 #print(files)
 paths_1 = [path + 'Adversory/'  + file for file in files_1]
 paths_2 = [path + 'Adversory_1/' + file for file in files_2]
 paths_3 = [path + 'No_Adversory/' + file for file in files_3]
+paths_4 = [path + 'No_Adversory_new/' + file for file in files_4]
 
 print(paths_1)
 print(paths_2)
-plot_agent_rewards(paths_1 = paths_1 + paths_2,  paths_2 = paths_3, episodes = 200, savefig_filename=path+'plot.pdf', set_format = 'pdf', compute = True)
+plot_agent_rewards(paths_1 = paths_1 + paths_2,  paths_2 = paths_4, episodes = 200, savefig_filename=path+'plot.pdf', set_format = 'pdf', compute = True)
 #plot_agent_rewards(paths_ddpg, episodes = 200)
