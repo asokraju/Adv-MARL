@@ -16,17 +16,17 @@ sns.set()
 env = Grid_World(6,6,5)
 des= np.array([0, 4, 14, 24, 32])
 adv_des=np.array([0, 35, 35, 35, 35])
-print("state_tranformation")
-for (key1, key2) in iter(env.state_transformation):
-    print((key1, key2),'<===>',env.state_transformation[(key1, key2)])
-print('_'*10)
-print("desired states")
-for s in des:
-    print(s,'<===>', env.i_state_transformation[s])
-print("End states of all the agents")
-print('_'*10)
-for s in [0, 8, 17, 29, 35]:
-    print(s,'<===>', env.i_state_transformation[s])
+# print("state_tranformation")
+# for (key1, key2) in iter(env.state_transformation):
+#     print((key1, key2),'<===>',env.state_transformation[(key1, key2)])
+# print('_'*10)
+# print("desired states")
+# for s in des:
+#     print(s,'<===>', env.i_state_transformation[s])
+# print("End states of all the agents")
+# print('_'*10)
+# for s in [0, 8, 17, 29, 35]:
+#     print(s,'<===>', env.i_state_transformation[s])
 def net_compute_reward(paths, episodes):
     end_states = []# [[] for _ in range(len(paths))]
     #predicted_rewards_all = [[] for _ in  range(5)]
@@ -76,7 +76,52 @@ paths_1 = [path + 'Adversory/'  + file for file in files_1]
 paths_2 = [path + 'Adversory_1/' + file for file in files_2]
 paths_3 = [path + 'No_Adversory/' + file for file in files_3]
 
-print(paths_1)
-print(paths_2)
+#print(paths_1)
+#print(paths_2)
 #net_compute_reward(paths = paths_1, episodes = 200)
 #plot_agent_rewards(paths_1 = paths_1 + paths_2,  paths_2 = paths_3, episodes = 200, savefig_filename=path+'plot.pdf', set_format = 'pdf', compute = True)
+
+# DATA = loadmat(paths_1[0])
+# states, _, _ , computed_rewards = DATA['data'][0][1][0][0]
+# print(np.mean(computed_rewards, axis=0))
+# print(np.mean(computed_rewards, axis=0).sum())
+path = './Power-Converters/marl/results/matfiles/'
+files_1 = os.listdir(path + 'Adversory/')
+files_2 = os.listdir(path + 'Adversory_1/')
+files_3 = os.listdir(path + 'No_Adversory/')
+files_4 = os.listdir(path + 'No_Adversory_new/')
+
+#print(files)
+paths_1 = [path + 'Adversory/'  + file for file in files_1]
+paths_2 = [path + 'Adversory_1/' + file for file in files_2]
+paths_3 = [path + 'No_Adversory/' + file for file in files_3]
+paths_4 = [path + 'No_Adversory_new/' + file for file in files_4]
+
+def net_predicted_returns(paths, episodes = 200):
+    exp_returns = []
+    for mat_path in iter(paths):
+        DATA = loadmat(mat_path)
+        epi_returns = []
+        for epi in range(episodes):
+            _, _, _, computed_rewards = DATA['data'][0][epi][0][0]
+            epi_returns.append(np.mean(computed_rewards, axis=0).sum())
+        exp_returns.append(epi_returns)
+    return exp_returns
+def net_predicted_returns_2(paths, episodes = 200):
+    exp_returns = []
+    for mat_path in iter(paths):
+        DATA = loadmat(mat_path)
+        epi_returns = []
+        for epi in range(episodes):
+            _, _, _, _, _, computed_rewards = DATA['data'][0][epi][0][0]
+            epi_returns.append(np.mean(computed_rewards, axis=0).sum())
+        exp_returns.append(epi_returns)
+    return exp_returns
+rrr_1 = net_predicted_returns(paths_1 + paths_2, episodes = 200)
+rrr_2 = net_predicted_returns_2(paths_3 + paths_4, episodes = 200)
+
+
+# rrr_1 = np.append(np.array(rrr_1).T[1:], temp).T.tolist()
+# rrr_2 = np.append(np.array(rrr_2).T[1:], np.array(rrr_2).T[-1]).tolist()
+rrr_new = np.array(rrr_1) + 3000
+print(rrr_1[-1][-1], rrr_new.tolist()[-1][-1])
