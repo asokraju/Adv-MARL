@@ -14,6 +14,14 @@ sns.set_context("paper")
 sns.set_style("whitegrid")
 sns.set()
 ##%
+import matplotlib.pylab as pylab
+params = {#'legend.fontsize': 'x-large',
+          #'figure.figsize': (15, 5),
+         'axes.labelsize': 'x-large',
+         'axes.titlesize':'x-large',
+         'xtick.labelsize':'x-large',
+         'ytick.labelsize':'x-large'}
+pylab.rcParams.update(params)
 
 env = Grid_World(6,6,5)
 des=np.array([0, 4, 14, 24, 32])
@@ -140,13 +148,13 @@ def plot_team_rewards(paths_1, paths_2, episodes, savefig_filename, set_format =
 
     team_reward_1 = np.array(team_reward_1).T[2:,:].T
     team_reward_2 = np.array(team_reward_2).T[2:,:].T
-    pred_rew_1 = np.array(pred_rew_1).T[2:,:].T + 4000 
+    pred_rew_1 = np.array(pred_rew_1).T[2:,:].T 
     pred_rew_1 = pred_rew_1.tolist()
     pred_rew_2 = np.array(pred_rew_2).T[2:,:].T.tolist()
     #print('pred_rew_1',np.shape(pred_rew_1))
     
 
-    label = ['adversary', 'good']
+    label = ['ad', 'ad-free']
     #DataFrame_1 = [pd.DataFrame(r) for r in iter(team_reward_1)]
     #DataFrame_2 = [pd.DataFrame(r) for r in iter(team_reward_2)]
     
@@ -164,21 +172,21 @@ def plot_team_rewards(paths_1, paths_2, episodes, savefig_filename, set_format =
     pred_std_1 = np.std(pred_rew_1, axis=0)
     pred_std_2 = np.std(pred_rew_2, axis=0)
 
-    axes.plot(steps, mean_1, 'r', alpha=1, label='true returns (adversary)')
-    axes.plot(steps, mean_2, 'b', alpha=1, label='true returns (good)')
+    axes.plot(steps, mean_1, 'r', alpha=1, label='true rewards (ad)')
+    axes.plot(steps, mean_2, 'b', alpha=1, label='true rewards (ad-free)')
 
-    axes.fill_between(steps, mean_1 - 0.5*std_1, mean_1 + 0.5*std_1,color='r', alpha=0.25)
-    axes.fill_between(steps, mean_2 - 0.5*std_2, mean_2 + 0.5*std_2,color='b', alpha=0.5)
+    axes.fill_between(steps, mean_1 - 0.5*std_1, mean_1 + 0.5*std_1, color='r', alpha=0.25)
+    axes.fill_between(steps, mean_2 - 0.5*std_2, mean_2 + 0.5*std_2, color='b', alpha=0.5)
 
-    axes.plot(steps, pred_mean_1, 'orange', alpha=1, label='predicted returns (adversary)')
-    axes.plot(steps, pred_mean_2, 'purple', alpha=0.7, label='predicted returns (good)')
+    axes.plot(steps, pred_mean_1, 'orange', alpha=1, label='Estimated rewards (ad)')
+    axes.plot(steps, pred_mean_2, 'purple', alpha=0.7, label='Estimated rewards (ad-free)')
 
     axes.fill_between(steps, pred_mean_1 - 0.5*pred_std_1, pred_mean_1 + 0.5*pred_std_1,color='orange', alpha=0.25)
     axes.fill_between(steps, pred_mean_2 - 0.5*pred_std_2, pred_mean_2 + 0.5*pred_std_2,color='purple', alpha=0.15)
     if compute:
         axes.set_ylim(-5e3,0e3)
         #axes[0].set_ylim(-7e3,0e3)
-    axes.set_title('True returns vs Predicted returns ', fontsize=15)
+    #axes.set_title('True returns vs Predicted returns ', fontsize=15)
     axes.set_label('Label via method')
     axes.legend()
     axes.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
@@ -200,7 +208,7 @@ def plot_agent_rewards(paths_1, paths_2, episodes, savefig_filename, set_format 
     #team_reward_2 = np.mean(data_2, axis=0).mean(axis=0)
     #print(np.shape(data_1))
 
-    label = ['adversary', 'good']
+    label = ['ad', 'ad-free']
     DataFrame_1 = [pd.DataFrame(r) for r in iter(data_1)]
     DataFrame_2 = [pd.DataFrame(r) for r in iter(data_2)]
     fig, axes = plt.subplots(1,5,figsize = (25,4))
@@ -232,10 +240,12 @@ def plot_agent_rewards(paths_1, paths_2, episodes, savefig_filename, set_format 
         #axes[i].set_ylim(-6e6,0.1e6)
         if compute:
             axes[i].set_ylim(-5e3,0e3)
-        axes[i].set_title('Agent-'+str(i+1), fontsize=15)
+        axes[i].set_title('Agent-'+str(i+1), fontsize=17)
         axes[i].set_label('Label via method')
-        axes[i].legend()
+        axes[i].legend(fontsize=20)
         axes[i].ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+        axes[i].tick_params(axis='both', which='major', labelsize=20)
+        axes[i].tick_params(axis='both', which='minor', labelsize=20)
     if savefig_filename is not None:
         assert isinstance(savefig_filename, str), "filename for saving the figure must be a string"
         plt.savefig(savefig_filename, format = set_format)
@@ -267,7 +277,7 @@ print(paths_2)
 #plt.savefig('destination_path.eps', format='eps')
 
 plot_agent_rewards(paths_1 = paths_1 + paths_2,  paths_2 = paths_4, episodes = 200, savefig_filename=path+'plot.pdf', set_format = 'pdf', compute = True)
-plot_team_rewards(paths_1 + paths_2, paths_4, episodes = 200, savefig_filename=path+'team_reward.pdf', set_format = 'pdf', compute = True)
+#plot_team_rewards(paths_1 + paths_2, paths_4, episodes = 200, savefig_filename=path+'team_reward.pdf', set_format = 'pdf', compute = True)
 #plot_agent_rewards(paths_ddpg, episodes = 200)
 
 #################################################################
