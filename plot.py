@@ -1,4 +1,5 @@
 ##%
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 
@@ -20,9 +21,13 @@ params = {#'legend.fontsize': 'x-large',
          'axes.labelsize': 'x-large',
          'axes.titlesize':'x-large',
          'xtick.labelsize':'x-large',
-         'ytick.labelsize':'x-large'}
+         'ytick.labelsize':'x-large',
+         'pdf.fonttype' : 42,
+         'ps.fonttype' : 42
+         }
 pylab.rcParams.update(params)
-
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
 env = Grid_World(6,6,5)
 des=np.array([0, 4, 14, 24, 32])
 adv_des=np.array([0, 35, 35, 35, 35])
@@ -148,7 +153,7 @@ def plot_team_rewards(paths_1, paths_2, episodes, savefig_filename, set_format =
 
     team_reward_1 = np.array(team_reward_1).T[2:,:].T
     team_reward_2 = np.array(team_reward_2).T[2:,:].T
-    pred_rew_1 = np.array(pred_rew_1).T[2:,:].T 
+    pred_rew_1 = np.array(pred_rew_1).T[2:,:].T #+4000
     pred_rew_1 = pred_rew_1.tolist()
     pred_rew_2 = np.array(pred_rew_2).T[2:,:].T.tolist()
     #print('pred_rew_1',np.shape(pred_rew_1))
@@ -276,8 +281,8 @@ print(paths_2)
 #print(np.mean(rrr_2, axis=0))
 #plt.savefig('destination_path.eps', format='eps')
 
-plot_agent_rewards(paths_1 = paths_1 + paths_2,  paths_2 = paths_4, episodes = 200, savefig_filename=path+'plot.pdf', set_format = 'pdf', compute = True)
-#plot_team_rewards(paths_1 + paths_2, paths_4, episodes = 200, savefig_filename=path+'team_reward.pdf', set_format = 'pdf', compute = True)
+#plot_agent_rewards(paths_1 = paths_1 + paths_2,  paths_2 = paths_4, episodes = 200, savefig_filename=path+'plot.pdf', set_format = 'pdf', compute = True)
+plot_team_rewards(paths_1 + paths_2, paths_4, episodes = 200, savefig_filename=path+'team_reward.pdf', set_format = 'pdf', compute = True)
 #plot_agent_rewards(paths_ddpg, episodes = 200)
 
 #################################################################
