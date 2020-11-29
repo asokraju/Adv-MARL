@@ -11,4 +11,4 @@ We consider a grid-world of dimension (6 x 6). We note that the tuples (0, 0) an
 
 <img src="https://github.com/asokraju/Adv-MARL/blob/master/results/plot-1.png" width="1200">
 
-<img src="https://github.com/asokraju/Adv-MARL/blob/master/results/team_reward-1.png" width="400" align="right">
+<img src="https://github.com/asokraju/Adv-MARL/blob/master/results/team_reward-1.png" width="400" align="center">
