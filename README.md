@@ -7,6 +7,6 @@ The aim is test and implement MARL algorithms in the presence adversarial agents
 ## Multi-Agent Gridworld
 <img src="https://github.com/asokraju/Adv-MARL/blob/master/results/plot-1.png" width="1200">
 
-<img src="https://github.com/asokraju/Adv-MARL/blob/master/results/team_reward-1.png" width="400">
+<img src="https://github.com/asokraju/Adv-MARL/blob/master/results/team_reward-1.png" width="400" align="right">
 
 
