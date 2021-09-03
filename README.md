@@ -9,7 +9,9 @@ We consider two scenarios.
 1) The objective of the agents is to maximize the team-average expected returns.
 2) One agent seeks to maximize its own expected returns and disregards the rest of the network.
 
-<img src="https://github.com/asokraju/Adv-MARL/blob/master/results/plot-1.png" width="2000" align="right">
+<img src="https://github.com/asokraju/Adv-MARL/blob/batch_training/simulation_results/All_cooperative2/sim_results.png" width="2000" align="right">
+
+<img src="https://github.com/asokraju/Adv-MARL/blob/batch_training/simulation_results/Adversary1/sim_results.png" width="2000" align="right">
 
 The simulation results reveal that while the cooperative agents learn a near-optimal policy in the adversary-free scenario, their learning is hampered in the presence of adversary. It is important to note that the adversary easily achieves its own objective.
 
