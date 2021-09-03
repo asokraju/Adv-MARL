@@ -1,0 +1,7 @@
+{'n_agents': 4, 'n_actions': 5, 'n_states': 2, 'n_episodes': 2000, 'max_ep_len': 20, 'slow_lr': 0.002, 'fast_lr': 0.01, 'gamma': 0.9, 'eps': 0.05, 'consensus_freq': 1, 'n_ep_fixed': 10, 'n_epochs': 10, 'desired_state': array([[3, 2],
+       [3, 4],
+       [2, 3],
+       [1, 4]]), 'in_nodes': [[0], [0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 2, 3]], 'randomize_state': True, 'initial_state': array([[3, 3],
+       [3, 0],
+       [4, 0],
+       [0, 0]]), 'scaling': True, 'random_seed': 50}
