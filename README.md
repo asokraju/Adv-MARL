@@ -13,7 +13,7 @@ We consider two scenarios.
 
 <img src="https://github.com/asokraju/Adv-MARL/blob/batch_training/simulation_results/Adversary1/sim_results.png" width="2000" align="right">
 
-The simulation results reveal that while the cooperative agents learn a near-optimal policy in the adversary-free scenario, their learning is hampered in the presence of adversary. It is important to note that the adversary easily achieves its own objective.
+The simulation results reveal that while the cooperative agents learn a near-optimal policy in the adversary-free scenario, their learning is hampered in the presence of adversary. It is important to note that the adversary easily achieves its own objective (bottom left figure).
 
 ## References
 <a id="1">[1]</a> 
