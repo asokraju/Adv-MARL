@@ -2,7 +2,7 @@
 
 Our goal is to test training performance of cooperative MARL agents in the presence of adversaries. Specifically, we take under the scope the consensus actor-critic algorithm that was proposed in [[1]](#1) with discounted returns in the objective function. The cooperative MARL problem with an adversary in the network was studied in [[2]](#2) - the results showed that a single adversary can arbitrarily hurt the network performance. The published code aims to validate the theoretical results.
 
-## Multi-Agent Gridworld
+## Multi-Agent Gridworld: Cooperative Navigation
 We consider a cooperative navigation task, where a group of agents operate in a grid world environment. The goal of each agent is to approach its desired position without colliding with other agents in the network. We design a grid-world of dimension (6 x 6) and consider a reward function that penalizes the agents for distance from the target and colliding with other agents. We implement the consensus AC algorithm to solve the cooperative navigation task.
 
 We consider two scenarios.
