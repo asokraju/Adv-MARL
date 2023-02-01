@@ -29,9 +29,9 @@ The simulation results reveal that while the cooperative agents learn a near-opt
 5. In order to optimally avoid collisions, each agent needs to minimize the average cost of all agents. However, due to privacy concerns, agents may not be able to share their costs with others.
 
 6. To overcome this issue, the agents try to learn the average cost function through a neural network, as follows:
-  1. First, they update the weights by minimizing the error between their current cost and the neural network.
-  2. Second, they share their parameters of the neural network with their neighbors.
-  3. Finally, each agent updates the weights of the neural network to the average of its neighbors.
+     - First, they update the weights by minimizing the error between their current cost and the neural network.
+     - Second, they share their parameters of the neural network with their neighbors.
+     - Finally, each agent updates the weights of the neural network to the average of its neighbors.
 
 7. An adversarial agent, however, would skip the final step and move to its destination along the shortest path, causing other agents to move out of its way and potentially not reaching their desired positions.
 
