@@ -15,8 +15,8 @@ We consider two scenarios.
 
 The simulation results reveal that while the cooperative agents learn a near-optimal policy in the adversary-free scenario, their learning is hampered in the presence of adversary. It is important to note that the adversary easily achieves its own objective (bottom left figure).
 
-Details of the second Scenario:
-## Study of Adversarial Attacks on a Network of Agents with Consensus-based MARL Algorithm
+
+## Summary: Study of Adversarial Attacks on a Network of Agents with Consensus-based MARL Algorithm
 
 1. In this study, we investigate the impact of adversarial attacks on a network of agents that employs consensus-based Multi-Agent Reinforcement Learning (MARL) algorithm.
 
